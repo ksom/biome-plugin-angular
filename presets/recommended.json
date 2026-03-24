@@ -1,0 +1,31 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "description": "Recommended biome-plugin-angular rules — suitable for most Angular 17+ projects",
+  "plugins": ["biome-plugin-angular"],
+  "linter": {
+    "rules": {
+      "plugins": {
+        "angular/prefer-standalone": "error",
+        "angular/no-empty-lifecycle-method": "warn",
+        "angular/no-component-suffix": "warn",
+        "angular/no-directive-suffix": "warn",
+        "angular/no-service-suffix": "warn",
+        "angular/component-selector": "warn",
+        "angular/no-input-rename": "error",
+        "angular/no-output-rename": "error",
+        "angular/no-output-on-prefix": "error",
+        "angular/pipe-prefix": "warn",
+        "angular/sort-ngmodule-metadata-arrays": "warn",
+        "angular/use-lifecycle-interface": "warn",
+        "angular/use-pipe-transform-interface": "warn",
+        "angular/contextual-lifecycle": "error",
+        "angular/prefer-signal-inputs": "warn",
+        "angular/prefer-output-function": "warn",
+        "angular/prefer-signal-queries": "warn",
+        "angular/prefer-model-signal": "warn",
+        "angular/prefer-host-property": "warn",
+        "angular/prefer-inject-function": "warn"
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+language js
+
+/*
+ * Rule: angular/no-empty-lifecycle-method
+ * ESLint equivalent: @angular-eslint/no-empty-lifecycle-method
+ *
+ * Disallows implementing Angular lifecycle interfaces without providing
+ * an implementation. Empty lifecycle methods add noise and should be
+ * removed.
+ *
+ * Angular lifecycle hooks covered:
+ *   ngOnChanges, ngOnInit, ngDoCheck, ngAfterContentInit,
+ *   ngAfterContentChecked, ngAfterViewInit, ngAfterViewChecked, ngOnDestroy
+ *
+ * Bad:
+ *   ngOnInit() {}
+ *   ngOnDestroy() { }
+ *
+ * Good:
+ *   ngOnInit() {
+ *     this.loadData();
+ *   }
+ *   // or simply omit the method entirely
+ */
+
+// Match Angular lifecycle methods whose body contains only whitespace (is empty)
+`$name() { $body }` where {
+  $name <: or {
+    `ngOnInit`,
+    `ngOnDestroy`,
+    `ngOnChanges`,
+    `ngDoCheck`,
+    `ngAfterContentInit`,
+    `ngAfterContentChecked`,
+    `ngAfterViewInit`,
+    `ngAfterViewChecked`
+  },
+  $body <: .
+}

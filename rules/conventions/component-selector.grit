@@ -1,0 +1,32 @@
+language js
+
+/*
+ * Rule: angular/component-selector
+ * ESLint equivalent: @angular-eslint/component-selector
+ *
+ * Enforces that @Component selectors:
+ *   - are element selectors (not attribute/class)
+ *   - use kebab-case
+ *   - start with the "app-" prefix (configurable)
+ *
+ * Bad:
+ *   @Component({ selector: 'Root', ... })          // PascalCase, no prefix
+ *   @Component({ selector: 'appRoot', ... })        // camelCase, no dash
+ *   @Component({ selector: 'my-root', ... })        // wrong prefix
+ *   @Component({ selector: '[appRoot]', ... })      // attribute selector
+ *
+ * Good:
+ *   @Component({ selector: 'app-root', ... })
+ *   @Component({ selector: 'app-user-profile', ... })
+ */
+
+// Match @Component decorators whose selector does not follow the
+// kebab-case + "app-" prefix convention.
+//
+// The pattern captures the selector string value and checks it against
+// the expected format: starts with "app-" followed by lowercase kebab words.
+
+`@Component({ $args })` where {
+  $args <: contains `selector: $sel`,
+  $sel <: not r"^['\"]app-[a-z][a-z0-9]*(-[a-z0-9]+)*['\"]$"
+}

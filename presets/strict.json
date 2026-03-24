@@ -1,0 +1,31 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "description": "Strict biome-plugin-angular rules — enforces all Angular conventions as errors",
+  "plugins": ["biome-plugin-angular"],
+  "linter": {
+    "rules": {
+      "plugins": {
+        "angular/prefer-standalone": "error",
+        "angular/no-empty-lifecycle-method": "error",
+        "angular/no-component-suffix": "error",
+        "angular/no-directive-suffix": "error",
+        "angular/no-service-suffix": "error",
+        "angular/component-selector": "error",
+        "angular/no-input-rename": "error",
+        "angular/no-output-rename": "error",
+        "angular/no-output-on-prefix": "error",
+        "angular/pipe-prefix": "error",
+        "angular/sort-ngmodule-metadata-arrays": "error",
+        "angular/use-lifecycle-interface": "error",
+        "angular/use-pipe-transform-interface": "error",
+        "angular/contextual-lifecycle": "error",
+        "angular/prefer-signal-inputs": "error",
+        "angular/prefer-output-function": "error",
+        "angular/prefer-signal-queries": "error",
+        "angular/prefer-model-signal": "error",
+        "angular/prefer-host-property": "error",
+        "angular/prefer-inject-function": "error"
+      }
+    }
+  }
+}

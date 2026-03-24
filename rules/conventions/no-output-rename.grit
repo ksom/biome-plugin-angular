@@ -1,0 +1,32 @@
+language js
+
+/*
+ * Rule: angular/no-output-rename
+ * ESLint equivalent: @angular-eslint/no-output-rename
+ *
+ * Disallows renaming @Output() properties via the decorator argument.
+ * Using an alias on an @Output creates a mismatch between the EventEmitter
+ * property name and the event name visible to the parent template,
+ * making event bindings harder to trace and maintain.
+ *
+ * Bad:
+ *   @Output('clickAlias') clicked = new EventEmitter<void>();
+ *   @Output({ alias: 'submitEvent' }) onSubmit = new EventEmitter<void>();
+ *
+ * Good:
+ *   @Output() clicked = new EventEmitter<void>();
+ *   @Output() onSubmit = new EventEmitter<void>();
+ */
+
+// Match @Output decorator calls that carry a string alias argument
+or {
+  // @Output('alias') — direct string argument
+  `@Output($alias)` where {
+    $alias <: r"^['\"].*['\"]$"
+  },
+
+  // @Output({ alias: '...' }) — alias inside options object
+  `@Output({ $opts })` where {
+    $opts <: contains `alias: $_`
+  }
+}

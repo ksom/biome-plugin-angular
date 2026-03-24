@@ -1,0 +1,40 @@
+language js
+
+/*
+ * Rule: angular/no-component-suffix
+ * Category: conventions (Angular v20+ modern naming)
+ *
+ * Angular v20+ style guide no longer recommends suffixing class names.
+ * Classes decorated with @Component should be named after what they represent,
+ * not after their Angular role.
+ *
+ * Reference: https://github.com/angular/angular/discussions/59522
+ *
+ * Bad:
+ *   @Component({ selector: 'app-root', standalone: true, template: '' })
+ *   export class AppComponent {}       // "Component" suffix is redundant
+ *
+ *   @Component({ selector: 'app-header', standalone: true, template: '' })
+ *   export class HeaderComponent {}
+ *
+ * Good:
+ *   @Component({ selector: 'app-root', standalone: true, template: '' })
+ *   export class App {}
+ *
+ *   @Component({ selector: 'app-header', standalone: true, template: '' })
+ *   export class Header {}
+ */
+
+// Match @Component-decorated classes whose name ends with "Component"
+
+or {
+  `@Component($args)
+class $name extends $parent { $body }` where {
+    $name <: r".*Component$"
+  },
+
+  `@Component($args)
+class $name { $body }` where {
+    $name <: r".*Component$"
+  }
+}

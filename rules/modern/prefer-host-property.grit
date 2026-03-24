@@ -1,0 +1,42 @@
+language js
+
+/*
+ * Rule: angular/prefer-host-property
+ * ESLint equivalent: INVERSE of @angular-eslint/no-host-metadata-property
+ *
+ * Prefer the host: {} metadata in @Component/@Directive over
+ * @HostBinding and @HostListener decorators.
+ *
+ * The Angular team now recommends using host: {} directly in the decorator
+ * options, as it co-locates host bindings with the component/directive
+ * metadata and avoids the verbosity of per-property decorators.
+ *
+ * Reference: https://angular.dev/style-guide#style-06-03
+ *
+ * Bad:
+ *   @Component({ ... })
+ *   export class MyComponent {
+ *     @HostBinding('class.active') isActive = false;
+ *     @HostListener('click') onClick() { ... }
+ *   }
+ *
+ * Good:
+ *   @Component({
+ *     ...,
+ *     host: {
+ *       '[class.active]': 'isActive',
+ *       '(click)': 'onClick()',
+ *     }
+ *   })
+ *   export class MyComponent {
+ *     isActive = false;
+ *     onClick() { ... }
+ *   }
+ */
+
+or {
+  `@HostBinding($args) $_`,
+  `@HostListener($args) $_`,
+  `@HostBinding() $_`,
+  `@HostListener() $_`
+}

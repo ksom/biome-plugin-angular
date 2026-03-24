@@ -1,0 +1,84 @@
+{
+  "name": "biome-plugin-angular",
+  "version": "0.1.0",
+  "description": "Biome 2.x plugin for Angular — GritQL port of @angular-eslint rules",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "biome-angular": "./cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "biome",
+    "angular",
+    "eslint",
+    "linter",
+    "gritql",
+    "plugin",
+    "angular-eslint",
+    "typescript"
+  ],
+  "author": "Virgile Vivier <virgilevivier@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "rules/",
+    "presets/",
+    "index.js",
+    "cli.js",
+    "biome-plugin.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^3.0.0",
+    "execa": "^9.0.0",
+    "ts-morph": "^24.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksom/biome-plugin-angular.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ksom/biome-plugin-angular/issues"
+  },
+  "homepage": "https://github.com/ksom/biome-plugin-angular#readme",
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": true
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            "CHANGELOG.md"
+          ]
+        }
+      ]
+    ]
+  }
+}

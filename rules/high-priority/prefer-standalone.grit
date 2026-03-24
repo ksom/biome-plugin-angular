@@ -1,0 +1,57 @@
+language js
+
+/*
+ * Rule: angular/prefer-standalone
+ * ESLint equivalent: @angular-eslint/prefer-standalone
+ *
+ * Enforces that Angular components, directives, and pipes declare
+ * `standalone: true` in their decorator metadata.
+ * Required for Angular 17+ best practices; standalone is the default
+ * in Angular 19 but explicit declaration is still enforced by this rule
+ * when migrating from NgModule-based code.
+ *
+ * Bad:
+ *   @Component({ selector: 'app-root', template: '...' })
+ *   export class AppComponent {}
+ *
+ *   @Component({ selector: 'app-root', standalone: false, template: '...' })
+ *   export class AppComponent {}
+ *
+ * Good:
+ *   @Component({ selector: 'app-root', standalone: true, template: '...' })
+ *   export class AppComponent {}
+ */
+
+// Match @Component, @Directive, or @Pipe decorators that do NOT have standalone: true
+
+or {
+  // @Component without standalone property at all
+  `@Component({ $args })` where {
+    $args <: not contains `standalone: $_`
+  },
+
+  // @Component with standalone: false
+  `@Component({ $args })` where {
+    $args <: contains `standalone: false`
+  },
+
+  // @Directive without standalone property at all
+  `@Directive({ $args })` where {
+    $args <: not contains `standalone: $_`
+  },
+
+  // @Directive with standalone: false
+  `@Directive({ $args })` where {
+    $args <: contains `standalone: false`
+  },
+
+  // @Pipe without standalone property at all
+  `@Pipe({ $args })` where {
+    $args <: not contains `standalone: $_`
+  },
+
+  // @Pipe with standalone: false
+  `@Pipe({ $args })` where {
+    $args <: contains `standalone: false`
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "$schema": "./rules-to-migrate.schema.json",
+  "typescript": [
+    {
+      "name": "prefer-standalone",
+      "eslintRule": "@angular-eslint/prefer-standalone",
+      "category": "high-priority",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/high-priority/prefer-standalone.grit",
+      "docs": "./docs/rules/prefer-standalone.md"
+    },
+    {
+      "name": "no-empty-lifecycle-method",
+      "eslintRule": "@angular-eslint/no-empty-lifecycle-method",
+      "category": "high-priority",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/high-priority/no-empty-lifecycle-method.grit",
+      "docs": "./docs/rules/no-empty-lifecycle-method.md"
+    },
+    {
+      "name": "component-class-suffix",
+      "eslintRule": "@angular-eslint/component-class-suffix",
+      "category": "high-priority",
+      "priority": 1,
+      "status": "skipped",
+      "gritFile": null,
+      "docs": null,
+      "skipReason": "Angular v20+ style guide no longer recommends class name suffixes. Replaced by angular/no-component-suffix. See https://github.com/angular/angular/discussions/59522"
+    },
+    {
+      "name": "directive-class-suffix",
+      "eslintRule": "@angular-eslint/directive-class-suffix",
+      "category": "conventions",
+      "priority": 2,
+      "status": "skipped",
+      "gritFile": null,
+      "docs": null,
+      "skipReason": "Angular v20+ style guide no longer recommends class name suffixes. See https://github.com/angular/angular/discussions/59522"
+    },
+    {
+      "name": "component-selector",
+      "eslintRule": "@angular-eslint/component-selector",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/component-selector.grit",
+      "docs": "./docs/rules/component-selector.md"
+    },
+    {
+      "name": "directive-selector",
+      "eslintRule": "@angular-eslint/directive-selector",
+      "category": "conventions",
+      "priority": 2,
+      "status": "todo",
+      "gritFile": null,
+      "docs": null,
+      "notes": "Enforces directive selector style: prefix, type (attribute), casing"
+    },
+    {
+      "name": "no-input-rename",
+      "eslintRule": "@angular-eslint/no-input-rename",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-input-rename.grit",
+      "docs": "./docs/rules/no-input-rename.md"
+    },
+    {
+      "name": "no-output-rename",
+      "eslintRule": "@angular-eslint/no-output-rename",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-output-rename.grit",
+      "docs": "./docs/rules/no-output-rename.md"
+    },
+    {
+      "name": "no-output-on-prefix",
+      "eslintRule": "@angular-eslint/no-output-on-prefix",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-output-on-prefix.grit",
+      "docs": "./docs/rules/no-output-on-prefix.md"
+    },
+    {
+      "name": "pipe-prefix",
+      "eslintRule": "@angular-eslint/pipe-prefix",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/pipe-prefix.grit",
+      "docs": "./docs/rules/pipe-prefix.md"
+    },
+    {
+      "name": "sort-ngmodule-metadata-arrays",
+      "eslintRule": "@angular-eslint/sort-ngmodule-metadata-arrays",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
+      "docs": "./docs/rules/sort-ngmodule-metadata-arrays.md"
+    },
+    {
+      "name": "use-lifecycle-interface",
+      "eslintRule": "@angular-eslint/use-lifecycle-interface",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/use-lifecycle-interface.grit",
+      "docs": "./docs/rules/use-lifecycle-interface.md"
+    },
+    {
+      "name": "no-host-metadata-property",
+      "eslintRule": "@angular-eslint/no-host-metadata-property",
+      "category": "quality",
+      "priority": 3,
+      "status": "skipped",
+      "gritFile": null,
+      "docs": null,
+      "skipReason": "INVERTED: Angular now recommends host:{} in @Component/@Directive over @HostBinding/@HostListener. Replaced by angular/prefer-host-property which enforces the opposite direction."
+    },
+    {
+      "name": "use-pipe-transform-interface",
+      "eslintRule": "@angular-eslint/use-pipe-transform-interface",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/use-pipe-transform-interface.grit",
+      "docs": "./docs/rules/use-pipe-transform-interface.md"
+    },
+    {
+      "name": "contextual-lifecycle",
+      "eslintRule": "@angular-eslint/contextual-lifecycle",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/contextual-lifecycle.grit",
+      "docs": "./docs/rules/contextual-lifecycle.md"
+    },
+    {
+      "name": "no-inputs-metadata-property",
+      "eslintRule": "@angular-eslint/no-inputs-metadata-property",
+      "category": "quality",
+      "priority": 3,
+      "status": "skipped",
+      "gritFile": null,
+      "docs": null,
+      "skipReason": "DOUBLY OBSOLETE: both inputs:[] metadata AND @Input() decorator are superseded by the input() signal function (Angular 17.1+). Replaced by angular/prefer-signal-inputs which enforces the modern signal-based approach."
+    },
+    {
+      "name": "no-outputs-metadata-property",
+      "eslintRule": "@angular-eslint/no-outputs-metadata-property",
+      "category": "quality",
+      "priority": 3,
+      "status": "skipped",
+      "gritFile": null,
+      "docs": null,
+      "skipReason": "DOUBLY OBSOLETE: both outputs:[] metadata AND @Output() decorator are superseded by the output() function (Angular 17.3+). Replaced by angular/prefer-output-function which enforces the modern approach."
+    },
+    {
+      "name": "prefer-signal-inputs",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-signal-inputs.grit",
+      "docs": "./docs/rules/prefer-signal-inputs.md",
+      "notes": "NEW: flag @Input() decorator, suggest input() / input.required() (Angular 17.1+)"
+    },
+    {
+      "name": "prefer-output-function",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-output-function.grit",
+      "docs": "./docs/rules/prefer-output-function.md",
+      "notes": "NEW: flag @Output() + EventEmitter, suggest output() (Angular 17.3+)"
+    },
+    {
+      "name": "prefer-signal-queries",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-signal-queries.grit",
+      "docs": "./docs/rules/prefer-signal-queries.md",
+      "notes": "NEW: flag @ViewChild/@ViewChildren/@ContentChild/@ContentChildren, suggest signal equivalents (Angular 17.2+)"
+    },
+    {
+      "name": "prefer-model-signal",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-model-signal.grit",
+      "docs": "./docs/rules/prefer-model-signal.md",
+      "notes": "NEW: flag @Input() + @Output() xyzChange pair, suggest model() (Angular 17.2+)"
+    },
+    {
+      "name": "prefer-host-property",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-host-property.grit",
+      "docs": "./docs/rules/prefer-host-property.md",
+      "notes": "NEW: inverse of no-host-metadata-property. Flag @HostBinding/@HostListener, suggest host: {} in decorator"
+    },
+    {
+      "name": "prefer-inject-function",
+      "eslintRule": null,
+      "category": "modern",
+      "priority": 1,
+      "status": "done",
+      "gritFile": "./rules/modern/prefer-inject-function.grit",
+      "docs": "./docs/rules/prefer-inject-function.md",
+      "notes": "NEW: flag constructor injection with access modifiers, suggest inject() function (Angular 14+)"
+    }
+  ]
+}
