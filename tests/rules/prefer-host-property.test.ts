@@ -94,6 +94,30 @@ describe('angular/prefer-host-property', () => {
       expect(detectHostDecorators(code)).toHaveLength(0);
     });
 
+    it('uses "unknown" as className for anonymous class (@HostListener)', () => {
+      const code = `
+        import { HostListener } from '@angular/core';
+        export default class {
+          @HostListener('click') onClick() {}
+        }
+      `;
+      const violations = detectHostDecorators(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('uses "unknown" as className for anonymous class (@HostBinding)', () => {
+      const code = `
+        import { HostBinding } from '@angular/core';
+        export default class {
+          @HostBinding('class.active') isActive = false;
+        }
+      `;
+      const violations = detectHostDecorators(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
     it('accepts host: {} in @Directive', () => {
       const code = `
         import { Directive } from '@angular/core';

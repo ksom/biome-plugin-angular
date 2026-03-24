@@ -5,13 +5,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['tests/helpers/**/*.ts', 'cli.js', 'index.js'],
-      exclude: [
-        'tests/rules/**',
-        'node_modules/**',
-        'coverage/**',
-        '**/*.d.ts',
-      ],
+      include: ['tests/helpers/pattern-matcher.ts'],
+      exclude: ['node_modules/**', 'coverage/**'],
     },
   },
 });

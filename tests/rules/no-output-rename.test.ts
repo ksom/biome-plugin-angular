@@ -71,6 +71,45 @@ describe('angular/no-output-rename', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class with string alias', () => {
+      const code = `
+        import { Output, EventEmitter } from '@angular/core';
+        export default class {
+          @Output('clickEvent') clicked = new EventEmitter<void>();
+        }
+      `;
+      const violations = detectOutputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('uses "unknown" as className for anonymous class with object alias', () => {
+      const code = `
+        import { Output, EventEmitter } from '@angular/core';
+        export default class {
+          @Output({ alias: 'submitEvent' }) onSubmit = new EventEmitter<void>();
+        }
+      `;
+      const violations = detectOutputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('handles non-string alias value in object (alias defaults to empty string)', () => {
+      const code = `
+        import { Output, EventEmitter } from '@angular/core';
+
+        export class AppComponent {
+          @Output({ alias: myVar }) clicked = new EventEmitter<void>();
+        }
+      `;
+      const violations = detectOutputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].alias).toBe('');
+    });
+  });
+
   describe('valid', () => {
     it('accepts @Output() without arguments', () => {
       const code = `

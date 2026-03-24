@@ -83,6 +83,28 @@ describe('angular/component-selector', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('ignores @Component() with no arguments', () => {
+      const code = `
+        import { Component } from '@angular/core';
+        @Component()
+        export class AppComponent {}
+      `;
+      expect(detectInvalidComponentSelector(code)).toHaveLength(0);
+    });
+
+    it('uses "unknown" as className for anonymous class with bad selector', () => {
+      const code = `
+        import { Component } from '@angular/core';
+        @Component({ selector: 'badSelector', standalone: true, template: '' })
+        export default class {}
+      `;
+      const violations = detectInvalidComponentSelector(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid', () => {
     it('accepts app- prefixed kebab-case selector', () => {
       const code = `

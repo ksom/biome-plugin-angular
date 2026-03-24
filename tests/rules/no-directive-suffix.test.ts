@@ -67,6 +67,17 @@ describe('angular/no-directive-suffix', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('handles anonymous class with @Directive (no violation, empty name)', () => {
+      const code = `
+        import { Directive } from '@angular/core';
+        @Directive({ selector: '[appFoo]', standalone: true })
+        export default class {}
+      `;
+      expect(detectDirectiveSuffix(code)).toHaveLength(0);
+    });
+  });
+
   describe('valid — class names without "Directive" suffix', () => {
     it('accepts Highlight (no suffix)', () => {
       const code = `

@@ -119,6 +119,18 @@ describe('angular/prefer-inject-function', () => {
       expect(detectConstructorInjection(code)).toHaveLength(0);
     });
 
+    it('uses "unknown" className and type for anonymous class with untyped param', () => {
+      const code = `
+        export default class {
+          constructor(private dep) {}
+        }
+      `;
+      const violations = detectConstructorInjection(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+      expect(violations[0].parameterType).toBe('unknown');
+    });
+
     it('accepts empty constructor', () => {
       const code = `
         import { Component, inject } from '@angular/core';

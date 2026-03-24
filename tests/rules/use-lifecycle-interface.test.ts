@@ -152,6 +152,17 @@ describe('angular/use-lifecycle-interface', () => {
       expect(detectMissingLifecycleInterface(code)).toHaveLength(0);
     });
 
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        export default class {
+          ngOnInit() { this.load(); }
+        }
+      `;
+      const violations = detectMissingLifecycleInterface(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
     it('ignores classes with no lifecycle methods', () => {
       const code = `
         import { Component } from '@angular/core';

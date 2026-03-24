@@ -51,6 +51,20 @@ describe('angular/prefer-output-function', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Output, EventEmitter } from '@angular/core';
+        export default class {
+          @Output() clicked = new EventEmitter<void>();
+        }
+      `;
+      const violations = detectDecoratorOutputs(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid — output() function usage', () => {
     it('accepts output() function', () => {
       const code = `

@@ -94,6 +94,28 @@ describe('angular/sort-ngmodule-metadata-arrays', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('ignores @NgModule() with no arguments', () => {
+      const code = `
+        import { NgModule } from '@angular/core';
+        @NgModule()
+        export class AppModule {}
+      `;
+      expect(detectUnsortedNgModuleArrays(code)).toHaveLength(0);
+    });
+
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { NgModule } from '@angular/core';
+        @NgModule({ declarations: [ZComponent, AComponent] })
+        export default class {}
+      `;
+      const violations = detectUnsortedNgModuleArrays(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid', () => {
     it('accepts alphabetically sorted declarations', () => {
       const code = `

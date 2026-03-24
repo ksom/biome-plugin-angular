@@ -66,6 +66,17 @@ describe('angular/no-component-suffix', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('handles anonymous class with @Component (no violation, empty name)', () => {
+      const code = `
+        import { Component } from '@angular/core';
+        @Component({ selector: 'app-foo', standalone: true, template: '' })
+        export default class {}
+      `;
+      expect(detectComponentSuffix(code)).toHaveLength(0);
+    });
+  });
+
   describe('valid — class names without "Component" suffix', () => {
     it('accepts App (no suffix)', () => {
       const code = `
