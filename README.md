@@ -1,7 +1,7 @@
 # biome-plugin-angular
 
 [![npm version](https://img.shields.io/npm/v/biome-plugin-angular.svg)](https://www.npmjs.com/package/biome-plugin-angular)
-[![CI](https://github.com/yourusername/biome-plugin-angular/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/biome-plugin-angular/actions/workflows/ci.yml)
+[![CI](https://github.com/ksom/biome-plugin-angular/actions/workflows/ci.yml/badge.svg)](https://github.com/ksom/biome-plugin-angular/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](package.json)
 
