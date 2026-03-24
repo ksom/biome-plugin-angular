@@ -37,10 +37,6 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
-        run: npm test
-
-      - name: Upload coverage (Node 22 only)
-        if: matrix.node-version == '22'
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
@@ -48,6 +44,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
           fail_ci_if_error: false
 
   lint:
