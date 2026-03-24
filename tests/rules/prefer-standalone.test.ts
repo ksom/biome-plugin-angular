@@ -7,6 +7,33 @@ describe('angular/prefer-standalone', () => {
   // -------------------------------------------------------------------------
 
   describe('invalid', () => {
+    it('flags @Component() with no arguments at all', () => {
+      const code = `
+        import { Component } from '@angular/core';
+
+        @Component()
+        export class AppComponent {}
+      `;
+
+      const violations = detectMissingStandalone(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].decorator).toBe('Component');
+      expect(violations[0].className).toBe('AppComponent');
+    });
+
+    it('flags @Directive() with no arguments at all', () => {
+      const code = `
+        import { Directive } from '@angular/core';
+
+        @Directive()
+        export class FooDirective {}
+      `;
+
+      const violations = detectMissingStandalone(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].decorator).toBe('Directive');
+    });
+
     it('flags @Component without standalone property', () => {
       const code = `
         import { Component } from '@angular/core';
