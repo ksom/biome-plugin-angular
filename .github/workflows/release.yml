@@ -7,19 +7,15 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   release:
-    name: Semantic Release
+    name: Publish to npm
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -31,12 +27,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests before release
+      - name: Run tests
         run: npm test
 
-      - name: Semantic Release
-        run: npx semantic-release
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: |
+            See [CHANGELOG.md](https://github.com/ksom/biome-plugin-angular/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false

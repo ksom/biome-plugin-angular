@@ -1,6 +1,6 @@
 {
   "name": "biome-plugin-angular",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Biome 2.x plugin for Angular — GritQL port of @angular-eslint rules",
   "type": "module",
   "main": "index.js",
