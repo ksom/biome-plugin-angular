@@ -71,6 +71,20 @@ describe('angular/no-output-on-prefix', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Output, EventEmitter } from '@angular/core';
+        export default class {
+          @Output() onSubmit = new EventEmitter<void>();
+        }
+      `;
+      const violations = detectOutputOnPrefix(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid', () => {
     it('accepts output without "on" prefix', () => {
       const code = `

@@ -66,6 +66,20 @@ describe('angular/prefer-signal-inputs', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Input } from '@angular/core';
+        export default class {
+          @Input() title: string = '';
+        }
+      `;
+      const violations = detectDecoratorInputs(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid — signal-based inputs', () => {
     it('accepts input() signal', () => {
       const code = `

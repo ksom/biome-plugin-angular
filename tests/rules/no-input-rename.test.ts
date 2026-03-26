@@ -71,6 +71,45 @@ describe('angular/no-input-rename', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class with string alias', () => {
+      const code = `
+        import { Input } from '@angular/core';
+        export default class {
+          @Input('myAlias') value: string = '';
+        }
+      `;
+      const violations = detectInputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('uses "unknown" as className for anonymous class with object alias', () => {
+      const code = `
+        import { Input } from '@angular/core';
+        export default class {
+          @Input({ alias: 'externalName' }) value: string = '';
+        }
+      `;
+      const violations = detectInputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('handles non-string alias value in object (alias defaults to empty string)', () => {
+      const code = `
+        import { Input } from '@angular/core';
+
+        export class AppComponent {
+          @Input({ alias: myVar }) value: string = '';
+        }
+      `;
+      const violations = detectInputRename(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].alias).toBe('');
+    });
+  });
+
   describe('valid', () => {
     it('accepts @Input() without arguments', () => {
       const code = `

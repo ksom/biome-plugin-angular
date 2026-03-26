@@ -80,6 +80,17 @@ describe('angular/no-service-suffix', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('handles anonymous class with @Injectable (no violation, empty name)', () => {
+      const code = `
+        import { Injectable } from '@angular/core';
+        @Injectable({ providedIn: 'root' })
+        export default class {}
+      `;
+      expect(detectServiceSuffix(code)).toHaveLength(0);
+    });
+  });
+
   describe('valid — descriptive names without "Service" suffix', () => {
     it('accepts UserStore (state management)', () => {
       const code = `

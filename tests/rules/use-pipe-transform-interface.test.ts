@@ -55,6 +55,21 @@ describe('angular/use-pipe-transform-interface', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Pipe } from '@angular/core';
+        @Pipe({ name: 'foo', standalone: true })
+        export default class {
+          transform(v: string) { return v; }
+        }
+      `;
+      const violations = detectMissingPipeTransform(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid — @Pipe implementing PipeTransform', () => {
     it('accepts @Pipe with PipeTransform', () => {
       const code = `

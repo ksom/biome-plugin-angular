@@ -106,6 +106,30 @@ describe('angular/no-empty-lifecycle-method', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('ignores abstract lifecycle methods (no body)', () => {
+      const code = `
+        import { Component } from '@angular/core';
+
+        abstract class BaseComponent {
+          abstract ngOnInit(): void;
+        }
+      `;
+      expect(detectEmptyLifecycleMethods(code)).toHaveLength(0);
+    });
+
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        export default class {
+          ngOnInit() {}
+        }
+      `;
+      const violations = detectEmptyLifecycleMethods(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   // -------------------------------------------------------------------------
   // Valid cases
   // -------------------------------------------------------------------------

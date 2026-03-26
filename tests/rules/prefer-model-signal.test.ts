@@ -56,6 +56,21 @@ describe('angular/prefer-model-signal', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Input, Output, EventEmitter } from '@angular/core';
+        export default class {
+          @Input() value = '';
+          @Output() valueChange = new EventEmitter<string>();
+        }
+      `;
+      const violations = detectTwoWayBindingPairs(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid — model() signal or non-paired outputs', () => {
     it('accepts model() signal', () => {
       const code = `

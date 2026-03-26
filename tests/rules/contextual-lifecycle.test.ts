@@ -101,6 +101,48 @@ describe('angular/contextual-lifecycle', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class with @Pipe violation', () => {
+      const code = `
+        import { Pipe, PipeTransform } from '@angular/core';
+        @Pipe({ name: 'foo', standalone: true })
+        export default class implements PipeTransform {
+          transform(v: string) { return v; }
+          ngAfterViewInit() { this.init(); }
+        }
+      `;
+      const violations = detectContextualLifecycleViolations(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('uses "unknown" as className for anonymous class with @Injectable violation', () => {
+      const code = `
+        import { Injectable } from '@angular/core';
+        @Injectable({ providedIn: 'root' })
+        export default class {
+          ngAfterViewInit() { this.render(); }
+        }
+      `;
+      const violations = detectContextualLifecycleViolations(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('uses "unknown" as className for anonymous class with @Directive violation', () => {
+      const code = `
+        import { Directive } from '@angular/core';
+        @Directive({ selector: '[appFoo]', standalone: true })
+        export default class {
+          ngAfterViewInit() {}
+        }
+      `;
+      const violations = detectContextualLifecycleViolations(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+  });
+
   describe('valid — lifecycle hooks in correct contexts', () => {
     it('accepts ngAfterViewInit in @Component', () => {
       const code = `

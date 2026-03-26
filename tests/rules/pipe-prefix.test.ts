@@ -75,6 +75,28 @@ describe('angular/pipe-prefix', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('uses "unknown" as className for anonymous class', () => {
+      const code = `
+        import { Pipe } from '@angular/core';
+        @Pipe({ name: 'badPipe', standalone: true })
+        export default class {}
+      `;
+      const violations = detectMissingPipePrefix(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].className).toBe('unknown');
+    });
+
+    it('ignores @Pipe() with no arguments at all', () => {
+      const code = `
+        import { Pipe } from '@angular/core';
+        @Pipe()
+        export class SomePipe {}
+      `;
+      expect(detectMissingPipePrefix(code)).toHaveLength(0);
+    });
+  });
+
   describe('valid', () => {
     it('accepts pipe name starting with "app" prefix', () => {
       const code = `
