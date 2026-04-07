@@ -94,10 +94,16 @@ jobs:
       - name: Verify rule count matches plugin manifest
         run: |
           grit_count=$(find rules -name '*.grit' | wc -l | tr -d ' ')
-          manifest_count=$(node -e "const p=JSON.parse(require('fs').readFileSync('biome-plugin.json','utf8')); console.log(p.rules.length)")
+          manifest_count=$(node -e "
+            const fs = require('fs');
+            const raw = fs.readFileSync('biome-manifest.jsonc', 'utf8');
+            const json = raw.replace(/\/\/.*/g, '');
+            const manifest = JSON.parse(json);
+            console.log(manifest.rules.length);
+          ")
           echo "GritQL files: $grit_count"
           echo "Manifest entries: $manifest_count"
           if [ "$grit_count" != "$manifest_count" ]; then
-            echo "ERROR: mismatch between .grit files ($grit_count) and biome-plugin.json entries ($manifest_count)"
+            echo "ERROR: mismatch between .grit files ($grit_count) and biome-manifest.jsonc entries ($manifest_count)"
             exit 1
           fi

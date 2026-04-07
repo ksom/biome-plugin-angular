@@ -19,9 +19,31 @@ Port des règles @angular-eslint + nouvelles règles signal-based (Angular moder
 - rules/quality/        — qualité de code (use-lifecycle-interface, contextual-lifecycle, etc.)
 - rules/modern/         — APIs signal-based Angular 17+ (prefer-signal-inputs, prefer-inject-function, etc.)
 
+## Commandes de test
+- npm test : tests unitaires (Vitest, 217 tests)
+- npm run test:integration : tests d'intégration avec le binaire biome réel (68 tests, 5 skipped)
+- npm run test:all : les deux suites
+
 ## État actuel
-- 20 règles actives (11 ports @angular-eslint + 3 nouvelles naming + 3 quality + 6 modern signal-based)
+- 20 règles dans biome-manifest.jsonc (format Biome 2.4.8+)
 - 4 règles skippées dans rules-to-migrate.json (obsolètes ou inversées)
-- Tests : 20 fichiers, 181 tests, tous verts
+- Tests unitaires : 21 fichiers, 217 tests, tous verts
+- Tests intégration : 20 fichiers, 68 tests verts, 5 skipped (limites GritQL)
 - Catégorie "modern" : prefer-signal-inputs, prefer-output-function, prefer-signal-queries,
   prefer-model-signal, prefer-host-property, prefer-inject-function
+
+## Limitations GritQL (Biome 2.4.8)
+GritQL ne supporte pas le pattern `@Decorator\nclass` comme une unité. Conséquences :
+
+**Règles heuristiques** (fonctionnent mais sans vérification du décorateur) :
+- no-component-suffix : flag toute classe `*Component` (pas seulement @Component)
+- no-directive-suffix : flag toute classe `*Directive` (pas seulement @Directive)
+- no-service-suffix : flag toute classe `*Service` (pas seulement @Injectable)
+- prefer-inject-function : flag tout constructor avec access modifiers (pas seulement Angular)
+
+**Règle limitée** :
+- sort-ngmodule-metadata-arrays : détecte la présence d'arrays, pas leur ordre de tri
+
+**Règles non-fonctionnelles** (compilent mais ne détectent pas les violations) :
+- contextual-lifecycle : nécessite le type de décorateur pour le contexte
+- use-pipe-transform-interface : nécessite @Pipe + class comme unité
