@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:all": "npm test && npm run test:integration",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit"
@@ -32,7 +34,7 @@
     "presets/",
     "index.js",
     "cli.js",
-    "biome-plugin.json",
+    "biome-manifest.jsonc",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

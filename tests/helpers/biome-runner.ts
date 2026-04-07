@@ -1,86 +1,151 @@
-import { exec } from 'node:child_process';
-import { mkdtemp, unlink, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
-export interface Diagnostic {
-  rule?: string;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '../..');
+
+const BIOME_BIN = resolve(ROOT, 'node_modules/.bin/biome');
+
+/**
+ * Temporary directory for integration test files.
+ * Generated once at module load outside the project tree.
+ */
+const TEMP_DIR = mkdtempSync(join(tmpdir(), 'biome-angular-integration-'));
+
+process.on('exit', () => {
+  try {
+    rmSync(TEMP_DIR, { recursive: true, force: true });
+  } catch {
+    // ignore
+  }
+});
+
+export interface BiomeDiagnostic {
+  category: string;
+  severity: string;
   message: string;
-  severity: 'error' | 'warning' | 'info';
-  location?: {
-    line: number;
-    column: number;
-  };
 }
 
-export interface CheckResult {
-  diagnostics: Diagnostic[];
-  exitCode: number;
+export interface BiomeCheckResult {
+  diagnostics: BiomeDiagnostic[];
+  raw: string;
+}
+
+let fileCounter = 0;
+
+/**
+ * Maps a rule name to its .grit file path.
+ */
+const RULE_PATHS: Record<string, string> = {
+  'prefer-standalone': 'rules/high-priority/prefer-standalone.grit',
+  'no-empty-lifecycle-method': 'rules/high-priority/no-empty-lifecycle-method.grit',
+  'no-service-suffix': 'rules/conventions/no-service-suffix.grit',
+  'no-directive-suffix': 'rules/conventions/no-directive-suffix.grit',
+  'no-component-suffix': 'rules/conventions/no-component-suffix.grit',
+  'component-selector': 'rules/conventions/component-selector.grit',
+  'no-input-rename': 'rules/conventions/no-input-rename.grit',
+  'no-output-rename': 'rules/conventions/no-output-rename.grit',
+  'no-output-on-prefix': 'rules/conventions/no-output-on-prefix.grit',
+  'pipe-prefix': 'rules/conventions/pipe-prefix.grit',
+  'sort-ngmodule-metadata-arrays': 'rules/conventions/sort-ngmodule-metadata-arrays.grit',
+  'use-lifecycle-interface': 'rules/quality/use-lifecycle-interface.grit',
+  'use-pipe-transform-interface': 'rules/quality/use-pipe-transform-interface.grit',
+  'contextual-lifecycle': 'rules/quality/contextual-lifecycle.grit',
+  'prefer-signal-inputs': 'rules/modern/prefer-signal-inputs.grit',
+  'prefer-output-function': 'rules/modern/prefer-output-function.grit',
+  'prefer-signal-queries': 'rules/modern/prefer-signal-queries.grit',
+  'prefer-model-signal': 'rules/modern/prefer-model-signal.grit',
+  'prefer-host-property': 'rules/modern/prefer-host-property.grit',
+  'prefer-inject-function': 'rules/modern/prefer-inject-function.grit',
+};
+
+/**
+ * Creates a config directory that loads only the specified rule.
+ */
+function getConfigDir(rule: string): string {
+  const ruleRelPath = RULE_PATHS[rule];
+  if (!ruleRelPath) {
+    throw new Error(`Unknown rule: ${rule}. Available: ${Object.keys(RULE_PATHS).join(', ')}`);
+  }
+
+  const configDir = join(TEMP_DIR, `config-${rule}`);
+  mkdirSync(configDir, { recursive: true });
+
+  const gritPath = resolve(ROOT, ruleRelPath);
+
+  writeFileSync(
+    join(configDir, 'biome.json'),
+    JSON.stringify(
+      {
+        $schema: 'https://biomejs.dev/schemas/2.4.8/schema.json',
+        plugins: [gritPath],
+        formatter: { enabled: false },
+        assist: { enabled: false },
+        linter: {
+          enabled: true,
+          rules: { recommended: false },
+        },
+      },
+      null,
+      2,
+    ),
+  );
+
+  return configDir;
 }
 
 /**
- * Runs `biome check` on a snippet of TypeScript code using the project's
- * biome-plugin.json configuration.
+ * Runs `biome lint` on a TypeScript code snippet for a specific rule.
  *
- * NOTE: Requires @biomejs/biome 2.x with plugin support installed.
+ * Only the specified rule is loaded, so diagnostics come exclusively
+ * from that single GritQL rule.
  */
-export async function checkCode(code: string, filename = 'test.ts'): Promise<CheckResult> {
-  const dir = await mkdtemp(join(tmpdir(), 'biome-angular-test-'));
+export async function runBiomeCheck(
+  rule: string,
+  code: string,
+): Promise<BiomeCheckResult> {
+  const inputFile = join(TEMP_DIR, `input_${fileCounter++}.ts`);
+  writeFileSync(inputFile, code);
 
-  const filePath = join(dir, filename);
-  const configPath = join(dir, 'biome.json');
+  const configDir = getConfigDir(rule);
 
-  // Minimal biome.json that loads our plugin
-  const biomeConfig = {
-    $schema: 'https://biomejs.dev/schemas/2.0.0/schema.json',
-    plugins: [join(process.cwd(), 'biome-plugin.json')],
-    linter: { enabled: true },
-  };
-
-  await Promise.all([
-    writeFile(filePath, code, 'utf8'),
-    writeFile(configPath, JSON.stringify(biomeConfig, null, 2), 'utf8'),
-  ]);
+  let stdout = '';
+  let stderr = '';
 
   try {
-    const { stdout, stderr } = await execAsync(
-      `npx --yes @biomejs/biome check --reporter=json "${filePath}"`,
-      { cwd: dir },
-    );
+    ({ stdout, stderr } = await execFileAsync(
+      BIOME_BIN,
+      [
+        'lint',
+        '--reporter=json',
+        `--config-path=${configDir}`,
+        inputFile,
+      ],
+      {
+        maxBuffer: 4 * 1024 * 1024,
+        timeout: 25_000,
+      },
+    ));
+  } catch (e: unknown) {
+    const err = e as { stdout?: string; stderr?: string };
+    stdout = err.stdout ?? '';
+    stderr = err.stderr ?? '';
+  }
 
-    const output = stdout || stderr;
-    try {
-      const parsed = JSON.parse(output);
-      return {
-        diagnostics: parsed.diagnostics ?? [],
-        exitCode: 0,
-      };
-    } catch {
-      return { diagnostics: [], exitCode: 0 };
-    }
-  } catch (error: unknown) {
-    const execError = error as { stdout?: string; stderr?: string; code?: number };
-    const output = execError.stdout || execError.stderr || '';
-    try {
-      const parsed = JSON.parse(output);
-      return {
-        diagnostics: parsed.diagnostics ?? [],
-        exitCode: execError.code ?? 1,
-      };
-    } catch {
-      return { diagnostics: [], exitCode: execError.code ?? 1 };
-    }
-  } finally {
-    await Promise.all([unlink(filePath).catch(() => {}), unlink(configPath).catch(() => {})]);
+  const raw = stdout || stderr;
+
+  try {
+    const parsed = JSON.parse(raw) as { diagnostics?: BiomeDiagnostic[] };
+    return { diagnostics: parsed.diagnostics ?? [], raw };
+  } catch {
+    return { diagnostics: [], raw };
   }
 }
 
-/**
- * AST-based pattern tester using ts-morph.
- * This is the primary test mechanism — it validates Angular code patterns
- * without needing Biome installed, making unit tests fast and reliable.
- */
 export { createPatternMatcher } from './pattern-matcher.js';
