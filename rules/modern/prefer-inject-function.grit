@@ -1,50 +1,9 @@
+// Limitation: GritQL cannot match @Injectable/@Component\nclass as one unit,
+// so this matches ANY constructor with access-modifier params (heuristic).
+// In Angular projects this is accurate; may false-positive in non-Angular code.
 language js
 
-/*
- * Rule: angular/prefer-inject-function
- * ESLint equivalent: (new rule — no direct ESLint equivalent)
- *
- * Prefer the inject() function over constructor-based dependency injection.
- * The inject() function (stable since Angular 14, recommended in Angular 16+)
- * works in injection contexts (field initializers, constructors, factory
- * functions) and avoids boilerplate constructor parameters.
- *
- * Benefits:
- * - Works in functional contexts (guards, resolvers, interceptors)
- * - Reduces constructor parameter lists
- * - Easier tree-shaking
- * - Consistent with signal-based APIs
- *
- * Bad:
- *   export class MyComponent {
- *     constructor(
- *       private userStore: UserStore,
- *       private router: Router,
- *     ) {}
- *   }
- *
- * Good:
- *   export class MyComponent {
- *     private userStore = inject(UserStore);
- *     private router = inject(Router);
- *   }
- *
- * Detection: flag constructors that have typed parameters with access
- * modifiers (private/protected/public/readonly) — the classic Angular DI pattern.
- */
-
-// Match constructor with at least one access-modifier parameter (Angular DI)
-or {
-  `constructor(private $name: $type) { $_ }`,
-  `constructor(private $name: $type, $rest) { $_ }`,
-  `constructor(protected $name: $type) { $_ }`,
-  `constructor(protected $name: $type, $rest) { $_ }`,
-  `constructor(public $name: $type) { $_ }`,
-  `constructor(public $name: $type, $rest) { $_ }`,
-  `constructor(readonly $name: $type) { $_ }`,
-  `constructor(readonly $name: $type, $rest) { $_ }`,
-  `constructor(private readonly $name: $type) { $_ }`,
-  `constructor(private readonly $name: $type, $rest) { $_ }`,
-  `constructor(protected readonly $name: $type) { $_ }`,
-  `constructor(protected readonly $name: $type, $rest) { $_ }`
+`constructor($params) { $_ }` where {
+  $params <: contains or { `private`, `protected`, `public`, `readonly` },
+  register_diagnostic(span = $params, message = "Prefer inject() over constructor-based dependency injection (Angular 14+).", severity = "warn")
 }

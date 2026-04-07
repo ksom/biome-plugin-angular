@@ -1,42 +1,28 @@
+// Limitation: Biome GritQL does not match @Decorator\nclass patterns at runtime.
+// This rule compiles but violations will NOT be detected.
+// Kept in manifest for forward-compatibility when Biome adds decorator+class support.
 language js
 
-/*
- * Rule: angular/use-pipe-transform-interface
- * ESLint equivalent: @angular-eslint/use-pipe-transform-interface
- *
- * Classes decorated with @Pipe should implement the PipeTransform interface.
- * This makes the transform() method signature type-safe and signals intent
- * clearly to readers.
- *
- * Bad:
- *   @Pipe({ name: 'myPipe', standalone: true })
- *   export class MyPipe {
- *     transform(value: string): string { return value; }
- *   }
- *
- * Good:
- *   @Pipe({ name: 'myPipe', standalone: true })
- *   export class MyPipe implements PipeTransform {
- *     transform(value: string): string { return value; }
- *   }
- */
-
 or {
-  // @Pipe class with no implements clause
   `@Pipe($args)
-class $name { $body }`,
+class $name { $body }` where {
+    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
+  },
 
   `@Pipe($args)
-class $name extends $ext { $body }`,
+class $name extends $ext { $body }` where {
+    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
+  },
 
-  // @Pipe class that implements something but not PipeTransform
   `@Pipe($args)
 class $name implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`
+    $ifaces <: not contains `PipeTransform`,
+    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
   },
 
   `@Pipe($args)
 class $name extends $ext implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`
+    $ifaces <: not contains `PipeTransform`,
+    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
   }
 }

@@ -1,39 +1,8 @@
+// Limitation: Biome GritQL does not match @Decorator\nclass patterns at runtime.
+// This rule compiles but violations will NOT be detected.
+// Kept in manifest for forward-compatibility when Biome adds decorator+class support.
 language js
 
-/*
- * Rule: angular/contextual-lifecycle
- * ESLint equivalent: @angular-eslint/contextual-lifecycle
- *
- * Validates that lifecycle methods are only used in the Angular class types
- * that actually support them.
- *
- * View-only hooks (require @Component):
- *   ngAfterViewInit, ngAfterViewChecked
- *
- * Content-only hooks (require @Component or @Directive):
- *   ngAfterContentInit, ngAfterContentChecked
- *
- * Services (@Injectable) should NOT use view/content lifecycle hooks.
- *
- * Bad:
- *   @Injectable({ providedIn: 'root' })
- *   export class MyStore {
- *     ngAfterViewInit() { ... }  // view hooks in a service!
- *   }
- *
- *   @Directive({ selector: '[appFoo]', standalone: true })
- *   export class Foo {
- *     ngAfterViewInit() { ... }  // view hooks don't fire for directives
- *   }
- *
- * Good:
- *   @Component({ ... })
- *   export class MyComponent implements AfterViewInit {
- *     ngAfterViewInit() { ... }
- *   }
- */
-
-// View lifecycle hooks in @Injectable (services)
 or {
   `@Injectable($args)
 class $name { $body }` where {
@@ -42,7 +11,8 @@ class $name { $body }` where {
       `ngAfterViewChecked() { $_ }`,
       `ngAfterContentInit() { $_ }`,
       `ngAfterContentChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
   `@Injectable($args)
 class $name extends $ext { $body }` where {
@@ -51,7 +21,8 @@ class $name extends $ext { $body }` where {
       `ngAfterViewChecked() { $_ }`,
       `ngAfterContentInit() { $_ }`,
       `ngAfterContentChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
   `@Injectable($args)
 class $name implements $ifaces { $body }` where {
@@ -60,33 +31,35 @@ class $name implements $ifaces { $body }` where {
       `ngAfterViewChecked() { $_ }`,
       `ngAfterContentInit() { $_ }`,
       `ngAfterContentChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
 
-  // View lifecycle hooks in @Directive (only @Component gets AfterViewInit/Checked)
   `@Directive($args)
 class $name { $body }` where {
     $body <: contains or {
       `ngAfterViewInit() { $_ }`,
       `ngAfterViewChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
   `@Directive($args)
 class $name extends $ext { $body }` where {
     $body <: contains or {
       `ngAfterViewInit() { $_ }`,
       `ngAfterViewChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
   `@Directive($args)
 class $name implements $ifaces { $body }` where {
     $body <: contains or {
       `ngAfterViewInit() { $_ }`,
       `ngAfterViewChecked() { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
 
-  // @Pipe classes should not use structural lifecycle hooks
   `@Pipe($args)
 class $name { $body }` where {
     $body <: contains or {
@@ -95,7 +68,8 @@ class $name { $body }` where {
       `ngAfterContentInit() { $_ }`,
       `ngAfterContentChecked() { $_ }`,
       `ngOnChanges($_) { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   },
   `@Pipe($args)
 class $name implements $ifaces { $body }` where {
@@ -105,6 +79,7 @@ class $name implements $ifaces { $body }` where {
       `ngAfterContentInit() { $_ }`,
       `ngAfterContentChecked() { $_ }`,
       `ngOnChanges($_) { $_ }`
-    }
+    },
+    register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: view/content hooks are only available in @Component, not in @Directive, @Injectable, or @Pipe.")
   }
 }

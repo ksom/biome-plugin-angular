@@ -1,27 +1,7 @@
 language js
 
-/*
- * Rule: angular/pipe-prefix
- * ESLint equivalent: @angular-eslint/pipe-prefix
- *
- * Enforces that the `name` field in @Pipe decorators starts with a
- * configurable prefix (default: "app"). This ensures pipe names are
- * namespaced and easy to distinguish from built-in Angular pipes.
- *
- * Bad:
- *   @Pipe({ name: 'truncate', standalone: true })
- *   @Pipe({ name: 'currencyFormat', standalone: true })
- *
- * Good (with prefix "app"):
- *   @Pipe({ name: 'appTruncate', standalone: true })
- *   @Pipe({ name: 'appCurrencyFormat', standalone: true })
- */
-
-// Match @Pipe decorators whose name value does NOT start with the "app" prefix.
-// NOTE: The prefix is configurable — this GritQL enforces the "app" default.
-// Adjust the regex when using a custom prefix.
-
 `@Pipe({ $args })` where {
   $args <: contains `name: $pipeName`,
-  $pipeName <: not r"^['\"]app[A-Z]"
+  $pipeName <: not r"^['\"]app[A-Z].*",
+  register_diagnostic(span = $pipeName, message = "Pipe name must start with the configured prefix (default: 'app').", severity = "warn")
 }

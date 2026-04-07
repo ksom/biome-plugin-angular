@@ -1,25 +1,10 @@
 language js
 
-/*
- * Rule: angular/prefer-signal-inputs
- * ESLint equivalent: (new rule — no direct ESLint equivalent)
- *
- * Prefer the signal-based input() function over the @Input() decorator.
- * Signal inputs (introduced in Angular 17.1) provide type-safe, reactive
- * inputs without change detection boilerplate.
- *
- * Bad:
- *   @Input() title: string = '';
- *   @Input() required title!: string;
- *   @Input({ required: true }) title!: string;
- *
- * Good:
- *   title = input('');
- *   title = input.required<string>();
- */
-
-// Match @Input() decorator usage on class properties
 or {
-  `@Input() $_`,
-  `@Input($args) $_`
+  `@Input()` where {
+    register_diagnostic(span = $match, message = "Prefer the input() signal function over @Input() decorator (Angular 17.1+).", severity = "warn")
+  },
+  `@Input($args)` where {
+    register_diagnostic(span = $match, message = "Prefer the input() signal function over @Input() decorator (Angular 17.1+).", severity = "warn")
+  }
 }

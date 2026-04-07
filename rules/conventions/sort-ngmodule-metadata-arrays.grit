@@ -1,36 +1,8 @@
+// Limitation: GritQL cannot perform algorithmic sort checks.
+// This rule flags the PRESENCE of metadata arrays, not their sort order.
+// Useful as a reminder; cannot detect already-sorted arrays.
 language js
 
-/*
- * Rule: angular/sort-ngmodule-metadata-arrays
- * ESLint equivalent: @angular-eslint/sort-ngmodule-metadata-arrays
- *
- * Enforces alphabetical (case-insensitive) ordering of entries in
- * NgModule metadata arrays: declarations, imports, exports, providers,
- * and bootstrap.
- *
- * Sorted arrays make it easier to find entries, spot duplicates, and
- * reduce merge conflicts in large modules.
- *
- * Bad:
- *   @NgModule({
- *     declarations: [HeaderComponent, AppComponent],   // H before A
- *     imports: [RouterModule, BrowserModule],          // R before B
- *   })
- *
- * Good:
- *   @NgModule({
- *     declarations: [AppComponent, HeaderComponent],
- *     imports: [BrowserModule, RouterModule],
- *   })
- *
- * NOTE: Ordering validation across array elements cannot be expressed as a
- * simple structural GritQL pattern. This rule is enforced at runtime by the
- * Biome plugin engine using a comparator over the matched array elements.
- * The pattern below matches NgModule decorators with the relevant arrays so
- * Biome can apply the ordering check.
- */
-
-// Match @NgModule decorators containing any of the sortable metadata arrays.
 `@NgModule({ $args })` where {
   $args <: or {
     contains `declarations: [$_]`,
@@ -38,5 +10,6 @@ language js
     contains `exports: [$_]`,
     contains `providers: [$_]`,
     contains `bootstrap: [$_]`
-  }
+  },
+  register_diagnostic(span = $args, message = "NgModule metadata arrays (declarations, imports, exports, providers) must be sorted alphabetically.", severity = "warn")
 }

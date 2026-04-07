@@ -1,24 +1,10 @@
 language js
 
-/*
- * Rule: angular/prefer-output-function
- * ESLint equivalent: (new rule — no direct ESLint equivalent)
- *
- * Prefer the output() function over @Output() + EventEmitter.
- * The output() function (introduced in Angular 17.3) is the modern,
- * signal-based alternative that integrates with the reactive primitives.
- *
- * Bad:
- *   @Output() clicked = new EventEmitter<void>();
- *   @Output() valueChange = new EventEmitter<string>();
- *
- * Good:
- *   clicked = output<void>();
- *   valueChange = output<string>();
- */
-
-// Match @Output() decorator usage on class properties
 or {
-  `@Output() $_`,
-  `@Output($args) $_`
+  `@Output()` where {
+    register_diagnostic(span = $match, message = "Prefer the output() function over @Output() + EventEmitter (Angular 17.3+).", severity = "warn")
+  },
+  `@Output($args)` where {
+    register_diagnostic(span = $match, message = "Prefer the output() function over @Output() + EventEmitter (Angular 17.3+).", severity = "warn")
+  }
 }

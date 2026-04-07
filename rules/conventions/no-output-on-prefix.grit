@@ -1,26 +1,6 @@
 language js
 
-/*
- * Rule: angular/no-output-on-prefix
- * ESLint equivalent: @angular-eslint/no-output-on-prefix
- *
- * Disallows naming @Output() properties with an "on" prefix followed by an
- * uppercase letter (e.g. onSubmit, onChange). Angular event bindings are
- * written as (eventName)="handler()" — the "on" prefix belongs to the handler
- * in the parent, not to the output itself.
- *
- * Bad:
- *   @Output() onSubmit = new EventEmitter<void>();
- *   @Output() onChange = new EventEmitter<string>();
- *
- * Good:
- *   @Output() submitted = new EventEmitter<void>();
- *   @Output() changed = new EventEmitter<string>();
- */
-
-// Match @Output-decorated properties whose name starts with "on" + uppercase letter.
-// The regex ^on[A-Z] catches onSubmit, onChange, onClick, etc.
-
-`@Output($_) $name = $_` where {
-  $name <: r"^on[A-Z]"
+`@Output() $name = $init` where {
+  $name <: r"^on[A-Z].*",
+  register_diagnostic(span = $name, message = "@Output() property names must not start with 'on' followed by an uppercase letter.")
 }

@@ -1,31 +1,13 @@
 language js
 
-/*
- * Rule: angular/no-input-rename
- * ESLint equivalent: @angular-eslint/no-input-rename
- *
- * Disallows renaming @Input() properties via the decorator argument.
- * Using an alias creates a mismatch between the property name and the public
- * API, making the component harder to use and understand.
- *
- * Bad:
- *   @Input('myAlias') value: string;               // string alias
- *   @Input({ alias: 'myAlias' }) value: string;    // alias in options object
- *
- * Good:
- *   @Input() value: string;
- *   @Input({ required: true }) value: string;      // options without alias
- */
-
-// Match @Input decorator calls that carry a string alias argument
 or {
-  // @Input('alias') — direct string argument
   `@Input($alias)` where {
-    $alias <: r"^['\"].*['\"]$"
+    $alias <: r"^['\"].*['\"]$",
+    register_diagnostic(span = $alias, message = "Avoid renaming @Input() properties. Use the property name as the public API.")
   },
 
-  // @Input({ alias: '...' }) — alias inside options object
   `@Input({ $opts })` where {
-    $opts <: contains `alias: $_`
+    $opts <: contains `alias: $_`,
+    register_diagnostic(span = $opts, message = "Avoid renaming @Input() properties. Use the property name as the public API.")
   }
 }

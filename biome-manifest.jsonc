@@ -1,0 +1,28 @@
+// Biome 2.x plugin manifest — required entry point when loading via
+// `"plugins": ["biome-plugin-angular"]` in biome.json.
+// Biome 2.4.8+ format: version (integer) + rules (array of .grit paths).
+{
+  "version": 1,
+  "rules": [
+    "./rules/high-priority/prefer-standalone.grit",
+    "./rules/high-priority/no-empty-lifecycle-method.grit",
+    "./rules/conventions/no-service-suffix.grit",
+    "./rules/conventions/no-directive-suffix.grit",
+    "./rules/conventions/no-component-suffix.grit",
+    "./rules/conventions/component-selector.grit",
+    "./rules/conventions/no-input-rename.grit",
+    "./rules/conventions/no-output-rename.grit",
+    "./rules/conventions/no-output-on-prefix.grit",
+    "./rules/conventions/pipe-prefix.grit",
+    "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
+    "./rules/quality/use-lifecycle-interface.grit",
+    "./rules/quality/use-pipe-transform-interface.grit",
+    "./rules/quality/contextual-lifecycle.grit",
+    "./rules/modern/prefer-signal-inputs.grit",
+    "./rules/modern/prefer-output-function.grit",
+    "./rules/modern/prefer-signal-queries.grit",
+    "./rules/modern/prefer-model-signal.grit",
+    "./rules/modern/prefer-host-property.grit",
+    "./rules/modern/prefer-inject-function.grit"
+  ]
+}

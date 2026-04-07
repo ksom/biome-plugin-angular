@@ -1,46 +1,9 @@
+// Limitation: GritQL cannot match @Injectable\nclass as one unit,
+// so this matches ANY class ending in "Service" (heuristic).
+// In Angular projects this is accurate; may false-positive in non-Angular code.
 language js
 
-/*
- * Rule: angular/no-service-suffix
- * Category: conventions (Angular v20+ modern naming)
- *
- * Angular v20+ style guide no longer recommends suffixing class names.
- * Classes decorated with @Injectable should use descriptive names that
- * express their responsibility, not their Angular role.
- *
- * Reference: https://github.com/angular/angular/discussions/59522
- *
- * Bad:
- *   @Injectable({ providedIn: 'root' })
- *   export class UserService {}        // "Service" suffix is generic/redundant
- *
- *   @Injectable({ providedIn: 'root' })
- *   export class AuthService {}
- *
- * Good (name expresses the responsibility):
- *   @Injectable({ providedIn: 'root' })
- *   export class UserStore {}          // state management
- *
- *   @Injectable({ providedIn: 'root' })
- *   export class UserApi {}            // HTTP client
- *
- *   @Injectable({ providedIn: 'root' })
- *   export class UserClient {}         // external API client
- *
- *   @Injectable({ providedIn: 'root' })
- *   export class AuthFacade {}         // facade over feature state
- */
-
-// Match @Injectable-decorated classes whose name ends with "Service"
-
-or {
-  `@Injectable($args)
-class $name extends $parent { $body }` where {
-    $name <: r".*Service$"
-  },
-
-  `@Injectable($args)
-class $name { $body }` where {
-    $name <: r".*Service$"
-  }
+`class $name { $_ }` where {
+  $name <: r".*Service$",
+  register_diagnostic(span = $name, message = "Angular v20+: remove the 'Service' suffix. Use a descriptive name (Store, Api, Client, Facade…).", severity = "warn")
 }

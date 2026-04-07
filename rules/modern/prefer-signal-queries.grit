@@ -1,35 +1,16 @@
 language js
 
-/*
- * Rule: angular/prefer-signal-queries
- * ESLint equivalent: (new rule — no direct ESLint equivalent)
- *
- * Prefer signal-based query functions over decorator-based query decorators.
- * Signal queries (Angular 17.2+) are reactive and avoid the need for
- * ngAfterViewInit/ngAfterContentInit lifecycle hooks in many cases.
- *
- * Decorator → Signal function mapping:
- *   @ViewChild(...)         → viewChild(...)
- *   @ViewChildren(...)      → viewChildren(...)
- *   @ContentChild(...)      → contentChild(...)
- *   @ContentChildren(...)   → contentChildren(...)
- *
- * Bad:
- *   @ViewChild(MyComponent) child!: MyComponent;
- *   @ViewChildren(MyComponent) children!: QueryList<MyComponent>;
- *   @ContentChild(TemplateRef) tpl?: TemplateRef<unknown>;
- *   @ContentChildren(Item) items!: QueryList<Item>;
- *
- * Good:
- *   child = viewChild.required(MyComponent);
- *   children = viewChildren(MyComponent);
- *   tpl = contentChild(TemplateRef);
- *   items = contentChildren(Item);
- */
-
 or {
-  `@ViewChild($args) $_`,
-  `@ViewChildren($args) $_`,
-  `@ContentChild($args) $_`,
-  `@ContentChildren($args) $_`
+  `@ViewChild($args)` where {
+    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
+  },
+  `@ViewChildren($args)` where {
+    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
+  },
+  `@ContentChild($args)` where {
+    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
+  },
+  `@ContentChildren($args)` where {
+    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
+  }
 }

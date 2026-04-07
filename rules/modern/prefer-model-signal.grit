@@ -1,28 +1,6 @@
 language js
 
-/*
- * Rule: angular/prefer-model-signal
- * ESLint equivalent: (new rule — no direct ESLint equivalent)
- *
- * Prefer model() for two-way binding over the @Input() + @Output() pattern.
- * When a component has a property `value` as @Input and `valueChange` as
- * @Output (the Angular two-way binding convention), this can be simplified
- * using the model() signal function (Angular 17.2+).
- *
- * Bad:
- *   @Input() value = '';
- *   @Output() valueChange = new EventEmitter<string>();
- *
- * Good:
- *   value = model('');
- *
- * Detection strategy: flag @Output() properties whose name ends with "Change"
- * when the corresponding @Input() exists (i.e. the two-way binding pair).
- * Note: We detect the @Output() xyzChange as the clearest signal of the pattern.
- */
-
-// Match @Output properties whose name ends with "Change" — the second half
-// of the two-way binding convention (@Input() xyz + @Output() xyzChange).
-`@Output($args) $prop = $init` where {
-  $prop <: r".*Change$"
+`@Output() $name = $init` where {
+  $name <: r".*Change$",
+  register_diagnostic(span = $name, message = "Prefer model() over the @Input() + @Output() xyzChange two-way binding pattern (Angular 17.2+).", severity = "warn")
 }
