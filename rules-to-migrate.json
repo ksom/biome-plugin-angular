@@ -29,6 +29,33 @@
       "skipReason": "Angular v20+ style guide no longer recommends class name suffixes. Replaced by angular/no-component-suffix. See https://github.com/angular/angular/discussions/59522"
     },
     {
+      "name": "no-component-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-component-suffix.grit",
+      "docs": "./docs/rules/no-component-suffix.md"
+    },
+    {
+      "name": "no-directive-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-directive-suffix.grit",
+      "docs": "./docs/rules/no-directive-suffix.md"
+    },
+    {
+      "name": "no-service-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-service-suffix.grit",
+      "docs": "./docs/rules/no-service-suffix.md"
+    },
+    {
       "name": "directive-class-suffix",
       "eslintRule": "@angular-eslint/directive-class-suffix",
       "category": "conventions",

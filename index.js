@@ -22,7 +22,12 @@ export const presets = {
 export const rules = {
   // high-priority
   'prefer-standalone': join(__dirname, 'rules', 'high-priority', 'prefer-standalone.grit'),
-  'no-empty-lifecycle-method': join(__dirname, 'rules', 'high-priority', 'no-empty-lifecycle-method.grit'),
+  'no-empty-lifecycle-method': join(
+    __dirname,
+    'rules',
+    'high-priority',
+    'no-empty-lifecycle-method.grit',
+  ),
   // conventions
   'no-component-suffix': join(__dirname, 'rules', 'conventions', 'no-component-suffix.grit'),
   'no-directive-suffix': join(__dirname, 'rules', 'conventions', 'no-directive-suffix.grit'),
@@ -34,7 +39,12 @@ export const rules = {
   'pipe-prefix': join(__dirname, 'rules', 'conventions', 'pipe-prefix.grit'),
   // quality
   'use-lifecycle-interface': join(__dirname, 'rules', 'quality', 'use-lifecycle-interface.grit'),
-  'use-pipe-transform-interface': join(__dirname, 'rules', 'quality', 'use-pipe-transform-interface.grit'),
+  'use-pipe-transform-interface': join(
+    __dirname,
+    'rules',
+    'quality',
+    'use-pipe-transform-interface.grit',
+  ),
   'contextual-lifecycle': join(__dirname, 'rules', 'quality', 'contextual-lifecycle.grit'),
   // modern
   'prefer-signal-inputs': join(__dirname, 'rules', 'modern', 'prefer-signal-inputs.grit'),

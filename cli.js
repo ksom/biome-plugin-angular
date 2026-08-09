@@ -135,9 +135,7 @@ function cmdRules() {
   const statusIcon = { done: '✅', todo: '⬜', 'in-progress': '🔄', skipped: '⏭️ ' };
   const categoryOrder = { 'high-priority': 0, conventions: 1, quality: 2, modern: 3 };
 
-  rules.sort(
-    (a, b) => (categoryOrder[a.category] ?? 99) - (categoryOrder[b.category] ?? 99),
-  );
+  rules.sort((a, b) => (categoryOrder[a.category] ?? 99) - (categoryOrder[b.category] ?? 99));
 
   let currentCategory = null;
   for (const rule of rules) {
