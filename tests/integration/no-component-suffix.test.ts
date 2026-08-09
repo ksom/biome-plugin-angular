@@ -20,9 +20,28 @@ describe('angular/no-component-suffix [integration]', () => {
       `);
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
     });
+
+    it('flags a suffixed component that extends a base class', async () => {
+      const { diagnostics, raw } = await runBiomeCheck('no-component-suffix', `
+        import { Component } from '@angular/core';
+        @Component({ selector: 'app-admin', standalone: true, template: '' })
+        export class AdminComponent extends BaseView {}
+      `);
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('Component');
+    });
   });
 
   describe('valid', () => {
+    it('accepts an undecorated class ending in Component (not Angular)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck('no-component-suffix', `
+        export class WidgetComponent {
+          render() {}
+        }
+      `);
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
+    });
+
     it('accepts class named App (no suffix)', async () => {
       const { diagnostics, raw } = await runBiomeCheck('no-component-suffix', `
         import { Component } from '@angular/core';
