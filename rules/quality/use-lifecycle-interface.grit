@@ -1,111 +1,45 @@
+// Port of @angular-eslint/use-lifecycle-interface.
+//
+// Implementation note: GritQL metavariables cannot bind an `implements` clause,
+// so class-shape branches like `class $n implements $i { $b }` never match.
+// Instead, match each lifecycle METHOD and require the file to reference the
+// corresponding interface (import + implements both appear as identifiers).
+// Known false negative: a file that imports the interface without implementing
+// it. Each hook needs a `: void` variant (annotated methods are distinct nodes);
+// ngOnChanges also gets parameterized variants.
 language js
 
 or {
-  `class $name { $body }` where {
-    $body <: contains or {
-      `ngOnInit() { $_ }`,
-      `ngOnDestroy() { $_ }`,
-      `ngOnChanges($_) { $_ }`,
-      `ngDoCheck() { $_ }`,
-      `ngAfterContentInit() { $_ }`,
-      `ngAfterContentChecked() { $_ }`,
-      `ngAfterViewInit() { $_ }`,
-      `ngAfterViewChecked() { $_ }`
-    },
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngOnInit() { $_ }`, `ngOnInit(): void { $_ }` } where {
+    $program <: not contains `OnInit`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngOnInit: implement the OnInit interface.", severity = "warn")
   },
-  `class $name extends $ext { $body }` where {
-    $body <: contains or {
-      `ngOnInit() { $_ }`,
-      `ngOnDestroy() { $_ }`,
-      `ngOnChanges($_) { $_ }`,
-      `ngDoCheck() { $_ }`,
-      `ngAfterContentInit() { $_ }`,
-      `ngAfterContentChecked() { $_ }`,
-      `ngAfterViewInit() { $_ }`,
-      `ngAfterViewChecked() { $_ }`
-    },
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngOnDestroy() { $_ }`, `ngOnDestroy(): void { $_ }` } where {
+    $program <: not contains `OnDestroy`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngOnDestroy: implement the OnDestroy interface.", severity = "warn")
   },
-
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngOnInit()`,
-    $ifaces <: not contains `OnInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngOnChanges() { $_ }`, `ngOnChanges(): void { $_ }`, `ngOnChanges($p) { $_ }`, `ngOnChanges($p): void { $_ }` } where {
+    $program <: not contains `OnChanges`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngOnChanges: implement the OnChanges interface.", severity = "warn")
   },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngOnInit()`,
-    $ifaces <: not contains `OnInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngDoCheck() { $_ }`, `ngDoCheck(): void { $_ }` } where {
+    $program <: not contains `DoCheck`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngDoCheck: implement the DoCheck interface.", severity = "warn")
   },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngOnDestroy()`,
-    $ifaces <: not contains `OnDestroy`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngAfterContentInit() { $_ }`, `ngAfterContentInit(): void { $_ }` } where {
+    $program <: not contains `AfterContentInit`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngAfterContentInit: implement the AfterContentInit interface.", severity = "warn")
   },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngOnDestroy()`,
-    $ifaces <: not contains `OnDestroy`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngAfterContentChecked() { $_ }`, `ngAfterContentChecked(): void { $_ }` } where {
+    $program <: not contains `AfterContentChecked`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngAfterContentChecked: implement the AfterContentChecked interface.", severity = "warn")
   },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngOnChanges($_)`,
-    $ifaces <: not contains `OnChanges`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngAfterViewInit() { $_ }`, `ngAfterViewInit(): void { $_ }` } where {
+    $program <: not contains `AfterViewInit`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngAfterViewInit: implement the AfterViewInit interface.", severity = "warn")
   },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngOnChanges($_)`,
-    $ifaces <: not contains `OnChanges`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngDoCheck()`,
-    $ifaces <: not contains `DoCheck`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngDoCheck()`,
-    $ifaces <: not contains `DoCheck`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngAfterContentInit()`,
-    $ifaces <: not contains `AfterContentInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngAfterContentInit()`,
-    $ifaces <: not contains `AfterContentInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngAfterContentChecked()`,
-    $ifaces <: not contains `AfterContentChecked`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngAfterContentChecked()`,
-    $ifaces <: not contains `AfterContentChecked`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngAfterViewInit()`,
-    $ifaces <: not contains `AfterViewInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngAfterViewInit()`,
-    $ifaces <: not contains `AfterViewInit`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name implements $ifaces { $body }` where {
-    $body <: contains `ngAfterViewChecked()`,
-    $ifaces <: not contains `AfterViewChecked`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
-  },
-  `class $name extends $ext implements $ifaces { $body }` where {
-    $body <: contains `ngAfterViewChecked()`,
-    $ifaces <: not contains `AfterViewChecked`,
-    register_diagnostic(span = $name, message = "Classes with Angular lifecycle methods should implement the corresponding interface (e.g. OnInit, OnDestroy).", severity = "warn")
+  or { `ngAfterViewChecked() { $_ }`, `ngAfterViewChecked(): void { $_ }` } where {
+    $program <: not contains `AfterViewChecked`,
+    register_diagnostic(span = $match, message = "Lifecycle method ngAfterViewChecked: implement the AfterViewChecked interface.", severity = "warn")
   }
 }
