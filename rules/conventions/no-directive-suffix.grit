@@ -1,9 +1,20 @@
-// Limitation: GritQL cannot match @Directive\nclass as one unit,
-// so this matches ANY class ending in "Directive" (heuristic).
-// In Angular projects this is accurate; may false-positive in non-Angular code.
+// Port of the Angular v20+ style-guide guidance: drop the "Directive" suffix.
+// Only classes decorated with @Directive are flagged (plain TS classes are not).
+// Patterns include explicit `export class` variants — GritQL treats the export
+// modifier as part of the matched statement. Known false negative: decorated
+// classes with an `implements` clause cannot be matched by GritQL.
 language js
 
-`class $name { $_ }` where {
+or {
+  `@Directive($a)
+class $name { $_ }`,
+  `@Directive($a)
+export class $name { $_ }`,
+  `@Directive($a)
+class $name extends $ext { $_ }`,
+  `@Directive($a)
+export class $name extends $ext { $_ }`
+} where {
   $name <: r".*Directive$",
   register_diagnostic(span = $name, message = "Angular v20+: remove the 'Directive' suffix from class names. Name classes after what they represent.", severity = "warn")
 }
