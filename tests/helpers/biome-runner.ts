@@ -139,12 +139,31 @@ export async function runBiomeCheck(
 
   const raw = stdout || stderr;
 
+  let parsed: { diagnostics?: BiomeDiagnostic[] };
   try {
-    const parsed = JSON.parse(raw) as { diagnostics?: BiomeDiagnostic[] };
-    return { diagnostics: parsed.diagnostics ?? [], raw };
+    parsed = JSON.parse(raw) as { diagnostics?: BiomeDiagnostic[] };
   } catch {
-    return { diagnostics: [], raw };
+    // Never swallow a biome failure: an unparseable output means the binary
+    // crashed, the config is invalid, or the plugin failed to compile. If we
+    // returned [] here, every "valid" test would pass vacuously.
+    throw new Error(
+      `biome produced no parseable JSON for rule "${rule}".\nstdout/stderr:\n${raw || '(empty)'}\nstderr:\n${stderr || '(empty)'}`,
+    );
   }
+
+  const diagnostics = parsed.diagnostics ?? [];
+
+  // Fixtures must be valid TypeScript and the config must load: any non-plugin
+  // diagnostic (parse error, configuration error…) is a broken test, not a
+  // rule result.
+  const nonPlugin = diagnostics.filter((d) => d.category !== 'plugin');
+  if (nonPlugin.length > 0) {
+    throw new Error(
+      `biome emitted non-plugin diagnostics for rule "${rule}" (broken fixture or config?): ${JSON.stringify(nonPlugin, null, 2)}`,
+    );
+  }
+
+  return { diagnostics, raw };
 }
 
 export { createPatternMatcher } from './pattern-matcher.js';
