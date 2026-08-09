@@ -16,7 +16,6 @@ export const pluginManifest = join(__dirname, 'biome-manifest.jsonc');
 /** Preset config paths */
 export const presets = {
   recommended: join(__dirname, 'presets', 'recommended.json'),
-  strict: join(__dirname, 'presets', 'strict.json'),
 };
 
 /** GritQL rule file paths keyed by rule name */
@@ -33,7 +32,6 @@ export const rules = {
   'no-output-rename': join(__dirname, 'rules', 'conventions', 'no-output-rename.grit'),
   'no-output-on-prefix': join(__dirname, 'rules', 'conventions', 'no-output-on-prefix.grit'),
   'pipe-prefix': join(__dirname, 'rules', 'conventions', 'pipe-prefix.grit'),
-  'sort-ngmodule-metadata-arrays': join(__dirname, 'rules', 'conventions', 'sort-ngmodule-metadata-arrays.grit'),
   // quality
   'use-lifecycle-interface': join(__dirname, 'rules', 'quality', 'use-lifecycle-interface.grit'),
   'use-pipe-transform-interface': join(__dirname, 'rules', 'quality', 'use-pipe-transform-interface.grit'),
