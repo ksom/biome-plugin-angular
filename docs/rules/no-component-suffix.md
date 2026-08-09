@@ -2,13 +2,20 @@
 
 **Category:** conventions
 **ESLint equivalent:** _(new rule — no ESLint equivalent, aligns with Angular v20+ style guide)_
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Detects `@Component`-decorated classes whose name ends with `Component` and suggests
 removing the suffix. This rule reflects the **Angular v20+ style guide** update that
 recommends naming classes after the concept they represent rather than their Angular role.
+
+The check is decorator-gated: only classes decorated with `@Component` are flagged.
+Plain TypeScript, NestJS, or React classes named `*Component` are **not** flagged.
+
+**Known false negative:** decorated classes with an `implements` clause
+(e.g. `class HeaderComponent implements OnInit`) cannot be matched by GritQL and are
+not flagged.
 
 > "We're updating our style guide to no longer recommend adding suffixes like `Component`,
 > `Directive`, `Service`, or `Pipe` to class names."
@@ -53,29 +60,29 @@ Run an automated rename across the project:
 find src -name '*.ts' | xargs sed -i 's/class \([A-Z][A-Za-z]*\)Component/class \1/g'
 ```
 
-Or use the Angular DevKit schematic when available:
-
-```bash
-ng generate @angular/core:remove-class-suffixes
-```
-
 ## Severity rationale
 
-This rule ships as `warn` (not `error`) in the `recommended` preset because many
-existing Angular projects use the old naming convention. The goal is to nudge teams
-during migration, not to block builds.
+This rule ships with a fixed `warn` severity (not `error`) because many existing Angular
+projects use the old naming convention. The goal is to nudge teams during migration, not
+to block builds. Biome plugins take no options, so the severity cannot be changed in
+`biome.json`; to enforce it as an error, fork the `.grit` file and remove the
+`severity = "warn"` argument.
 
-Set it to `error` in the `strict` preset or when starting a new Angular v20+ project:
+## Configuration
+
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
 
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-component-suffix": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
+}
+```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
 }
 ```
 

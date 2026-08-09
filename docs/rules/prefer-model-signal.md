@@ -2,13 +2,15 @@
 
 **Category:** modern (signal-based APIs)
 **ESLint equivalent:** _(new rule — no direct ESLint equivalent)_
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Prefer `model()` for two-way binding over the `@Input()` + `@Output() xyzChange` pattern. The `model()` signal function (stable since Angular 17.2) reduces boilerplate for the two-way binding convention.
 
-**Detection:** this rule flags `@Output()` properties whose name ends with `Change` when the corresponding `@Input()` property exists in the same class.
+**Detection:** this rule flags an `@Output()` property whose name ends with `Change` only when a matching `@Input()` property with the base name (e.g. `value` for `valueChange`) exists in the **same file**. Unpaired `*Change` outputs — such as Material-style `selectionChange` events with no corresponding input — are **not** flagged. Initialized (`= ...`), typed (`: T`), and definite-assignment (`!: T`) properties are all matched.
+
+**Known false negative:** `readonly` properties (e.g. `@Output() readonly valueChange = ...`) cannot be matched by GritQL and are not flagged.
 
 ## Examples
 
@@ -19,8 +21,20 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({ selector: 'app-counter', standalone: true, template: '' })
 export class CounterComponent {
-  @Input() value = 0;                                    // ⚠️ two-way binding pair
-  @Output() valueChange = new EventEmitter<number>();    // ⚠️ use model() instead
+  @Input() value = 0;                                    // paired input
+  @Output() valueChange = new EventEmitter<number>();    // ⚠️ flagged — use model() instead
+}
+```
+
+### Not flagged
+
+```typescript
+import { Component, Output, EventEmitter } from '@angular/core';
+
+@Component({ selector: 'app-list', standalone: true, template: '' })
+export class ListComponent {
+  // No matching @Input() named `selection` — this is a plain event, not two-way binding
+  @Output() selectionChange = new EventEmitter<string[]>();
 }
 ```
 
@@ -44,17 +58,24 @@ export class CounterComponent {
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/prefer-model-signal": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

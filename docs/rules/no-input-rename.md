@@ -2,7 +2,7 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/no-input-rename`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
@@ -62,17 +62,25 @@ value = input<string>('', { alias: 'externalValue' });
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-input-rename"` from your ESLint config and enable the
+plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-input-rename": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

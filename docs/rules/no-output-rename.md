@@ -2,7 +2,7 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/no-output-rename`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
@@ -68,17 +68,25 @@ clicked = output<void>({ alias: 'clickEvent' });
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-output-rename"` from your ESLint config and enable the
+plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-output-rename": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

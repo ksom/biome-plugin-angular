@@ -2,7 +2,7 @@
 
 **Category:** modern (signal-based APIs)
 **ESLint equivalent:** INVERSE of `@angular-eslint/no-host-metadata-property`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
@@ -50,17 +50,24 @@ export class ButtonComponent {
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/prefer-host-property": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

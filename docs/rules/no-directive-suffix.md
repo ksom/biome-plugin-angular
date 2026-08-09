@@ -2,13 +2,20 @@
 
 **Category:** conventions
 **ESLint equivalent:** _(new rule — aligns with Angular v20+ style guide)_
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Detects `@Directive`-decorated classes whose name ends with `Directive` and suggests
 removing the suffix. This rule is the directive counterpart of `angular/no-component-suffix`
 and reflects the **Angular v20+ style guide** update.
+
+The check is decorator-gated: only classes decorated with `@Directive` are flagged.
+Plain TypeScript classes named `*Directive` are **not** flagged.
+
+**Known false negative:** decorated classes with an `implements` clause
+(e.g. `class HighlightDirective implements OnInit`) cannot be matched by GritQL and are
+not flagged.
 
 > "We're updating our style guide to no longer recommend adding suffixes like `Component`,
 > `Directive`, `Service`, or `Pipe` to class names."
@@ -50,23 +57,26 @@ export class ClickOutside {}
 
 ## Severity rationale
 
-Ships as `warn` in `recommended` to ease migration of existing codebases.
-Use `error` in `strict` or for new Angular v20+ projects.
+Ships with a fixed `warn` severity to ease migration of existing codebases. Biome
+plugins take no options, so the severity cannot be changed in `biome.json`; to enforce
+it as an error, fork the `.grit` file and remove the `severity = "warn"` argument.
 
 ## Migration from @angular-eslint
 
 If you previously used `@angular-eslint/directive-class-suffix` (which enforced the
-*opposite* convention), remove it and add this rule instead:
+*opposite* convention), remove it and enable the plugin in `biome.json`:
 
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-directive-suffix": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
+}
+```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
 }
 ```
 

@@ -2,16 +2,20 @@
 
 **Category:** high-priority
 **ESLint equivalent:** `@angular-eslint/prefer-standalone`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
-Enforces that Angular components, directives, and pipes declare `standalone: true` in their
-decorator metadata. This rule is critical for Angular 17+ projects migrating away from
-NgModule-based architecture.
+Flags explicit `standalone: false` in `@Component`, `@Directive`, and `@Pipe` decorator
+metadata. Since Angular 19, standalone is the **default** — declaring `standalone: false`
+opts back into the NgModule system, and the v20 style guide recommends omitting the
+property entirely.
 
-In Angular 19, `standalone: true` is the default, but this rule still flags explicit
-`standalone: false` declarations (which opt back into the NgModule system).
+This rule only flags the explicit opt-out. Omitting the property (idiomatic Angular 19+)
+and the redundant `standalone: true` are both accepted.
+
+Diagnostic message: *"Avoid standalone: false. Standalone is the default since Angular 19 —
+migrate this declarable off NgModules and remove the property."*
 
 ## Examples
 
@@ -20,18 +24,7 @@ In Angular 19, `standalone: true` is the default, but this rule still flags expl
 ```typescript
 import { Component } from '@angular/core';
 
-// Missing standalone: true
-@Component({
-  selector: 'app-root',
-  template: '<h1>Hello</h1>',
-})
-export class AppComponent {}
-```
-
-```typescript
-import { Component } from '@angular/core';
-
-// Explicitly opting out
+// Explicitly opting out of standalone
 @Component({
   selector: 'app-root',
   standalone: false,
@@ -43,7 +36,7 @@ export class AppComponent {}
 ```typescript
 import { Directive } from '@angular/core';
 
-@Directive({ selector: '[appHighlight]' })
+@Directive({ selector: '[appHighlight]', standalone: false })
 export class HighlightDirective {}
 ```
 
@@ -52,9 +45,9 @@ export class HighlightDirective {}
 ```typescript
 import { Component } from '@angular/core';
 
+// Omitting standalone is idiomatic since Angular 19 (standalone by default)
 @Component({
   selector: 'app-root',
-  standalone: true,
   template: '<h1>Hello</h1>',
 })
 export class AppComponent {}
@@ -63,6 +56,7 @@ export class AppComponent {}
 ```typescript
 import { Directive } from '@angular/core';
 
+// Explicit standalone: true is redundant but not flagged
 @Directive({ selector: '[appHighlight]', standalone: true })
 export class HighlightDirective {}
 ```
@@ -70,7 +64,7 @@ export class HighlightDirective {}
 ```typescript
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({ name: 'truncate', standalone: true })
+@Pipe({ name: 'truncate' })
 export class TruncatePipe implements PipeTransform {
   transform(value: string, limit: number): string {
     return value.substring(0, limit);
@@ -80,19 +74,25 @@ export class TruncatePipe implements PipeTransform {
 
 ## Migration from @angular-eslint
 
-Replace `"@angular-eslint/prefer-standalone": "error"` with the Biome rule in your `biome.json`:
+Remove `"@angular-eslint/prefer-standalone"` from your ESLint config and enable the
+plugin in `biome.json`:
 
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/prefer-standalone": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 
