@@ -36,8 +36,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Run tests
+      - name: Unit tests (reference-spec layer)
         run: npm run test:coverage
+
+      - name: Integration tests (real biome binary)
+        run: npm run test:integration
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '22'
@@ -46,6 +49,34 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           fail_ci_if_error: false
+
+  biome-latest:
+    name: Integration tests against latest Biome
+    runs-on: ubuntu-latest
+    # Early warning when a new Biome release changes plugin behavior.
+    # Non-blocking: a breaking upstream release should not fail unrelated PRs.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install latest Biome
+        run: |
+          npm install --no-save @biomejs/biome@latest
+          npx biome --version
+
+      - name: Integration tests
+        run: npm run test:integration
 
   lint:
     name: Lint
