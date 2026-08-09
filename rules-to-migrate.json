@@ -1,5 +1,4 @@
 {
-  "$schema": "./rules-to-migrate.schema.json",
   "typescript": [
     {
       "name": "prefer-standalone",

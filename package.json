@@ -32,13 +32,18 @@
   "files": [
     "rules/",
     "presets/",
+    "docs/",
     "index.js",
     "cli.js",
     "biome-manifest.jsonc",
+    "rules-to-migrate.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
+  "peerDependencies": {
+    "@biomejs/biome": ">=2.4.8 <3"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@semantic-release/changelog": "^6.0.3",
