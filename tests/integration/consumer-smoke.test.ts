@@ -33,10 +33,14 @@ describe('consumer smoke test [integration]', () => {
     );
     const [{ filename }] = JSON.parse(stdout) as [{ filename: string }];
 
-    await execFileAsync('npm', ['install', '--no-audit', '--no-fund', join(consumerDir, filename)], {
-      cwd: consumerDir,
-      maxBuffer: 16 * 1024 * 1024,
-    });
+    await execFileAsync(
+      'npm',
+      ['install', '--no-audit', '--no-fund', join(consumerDir, filename)],
+      {
+        cwd: consumerDir,
+        maxBuffer: 16 * 1024 * 1024,
+      },
+    );
   }, 120_000);
 
   afterAll(() => {
@@ -47,22 +51,26 @@ describe('consumer smoke test [integration]', () => {
     }
   });
 
-  async function lint(file: string): Promise<{ diagnostics: Array<{ category: string; message: string }> }> {
+  async function lint(
+    file: string,
+  ): Promise<{ diagnostics: Array<{ category: string; message: string }> }> {
     let stdout = '';
     let stderr = '';
     try {
-      ({ stdout, stderr } = await execFileAsync(
-        BIOME_BIN,
-        ['lint', '--reporter=json', file],
-        { cwd: consumerDir, maxBuffer: 4 * 1024 * 1024, timeout: 30_000 },
-      ));
+      ({ stdout, stderr } = await execFileAsync(BIOME_BIN, ['lint', '--reporter=json', file], {
+        cwd: consumerDir,
+        maxBuffer: 4 * 1024 * 1024,
+        timeout: 30_000,
+      }));
     } catch (e: unknown) {
       const err = e as { stdout?: string; stderr?: string };
       stdout = err.stdout ?? '';
       stderr = err.stderr ?? '';
     }
     const raw = stdout || stderr;
-    const parsed = JSON.parse(raw) as { diagnostics?: Array<{ category: string; message: string }> };
+    const parsed = JSON.parse(raw) as {
+      diagnostics?: Array<{ category: string; message: string }>;
+    };
     return { diagnostics: parsed.diagnostics ?? [] };
   }
 

@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -105,10 +105,7 @@ function getConfigDir(rule: string): string {
  * Only the specified rule is loaded, so diagnostics come exclusively
  * from that single GritQL rule.
  */
-export async function runBiomeCheck(
-  rule: string,
-  code: string,
-): Promise<BiomeCheckResult> {
+export async function runBiomeCheck(rule: string, code: string): Promise<BiomeCheckResult> {
   const inputFile = join(TEMP_DIR, `input_${fileCounter++}.ts`);
   writeFileSync(inputFile, code);
 
@@ -120,12 +117,7 @@ export async function runBiomeCheck(
   try {
     ({ stdout, stderr } = await execFileAsync(
       BIOME_BIN,
-      [
-        'lint',
-        '--reporter=json',
-        `--config-path=${configDir}`,
-        inputFile,
-      ],
+      ['lint', '--reporter=json', `--config-path=${configDir}`, inputFile],
       {
         maxBuffer: 4 * 1024 * 1024,
         timeout: 25_000,
