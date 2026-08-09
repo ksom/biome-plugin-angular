@@ -1,9 +1,49 @@
-// Limitation: GritQL cannot match @Injectable/@Component\nclass as one unit,
-// so this matches ANY constructor with access-modifier params (heuristic).
-// In Angular projects this is accurate; may false-positive in non-Angular code.
+// Port of the Angular 14+ guidance: prefer inject() over constructor DI.
+// Only flags constructors inside @Component/@Directive/@Injectable/@Pipe
+// classes, so plain TS or NestJS classes using parameter properties are not
+// flagged. Patterns include explicit `export class` variants — GritQL treats
+// the export modifier as part of the matched statement.
+// Known false negatives: decorated classes with an `implements` clause cannot
+// be matched by GritQL, and DI without an access modifier
+// (constructor(dep: Service) { this.dep = dep }) is undetectable statically.
 language js
 
-`constructor($params) { $_ }` where {
-  $params <: contains or { `private`, `protected`, `public`, `readonly` },
+or {
+  `@Component($a)
+class $name { $body }`,
+  `@Component($a)
+export class $name { $body }`,
+  `@Component($a)
+class $name extends $ext { $body }`,
+  `@Component($a)
+export class $name extends $ext { $body }`,
+  `@Directive($a)
+class $name { $body }`,
+  `@Directive($a)
+export class $name { $body }`,
+  `@Directive($a)
+class $name extends $ext { $body }`,
+  `@Directive($a)
+export class $name extends $ext { $body }`,
+  `@Injectable($a)
+class $name { $body }`,
+  `@Injectable($a)
+export class $name { $body }`,
+  `@Injectable($a)
+class $name extends $ext { $body }`,
+  `@Injectable($a)
+export class $name extends $ext { $body }`,
+  `@Pipe($a)
+class $name { $body }`,
+  `@Pipe($a)
+export class $name { $body }`,
+  `@Pipe($a)
+class $name extends $ext { $body }`,
+  `@Pipe($a)
+export class $name extends $ext { $body }`
+} where {
+  $body <: contains `constructor($params) { $_ }` where {
+    $params <: contains or { `private`, `protected`, `public`, `readonly` }
+  },
   register_diagnostic(span = $params, message = "Prefer inject() over constructor-based dependency injection (Angular 14+).", severity = "warn")
 }

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { runBiomeCheck } from '../helpers/biome-runner.js';
 
 // NOTE: The GritQL rule matches constructors with access-modifier parameters
-// (private, protected, public, readonly). This is the standard Angular DI pattern.
+// (private, protected, public, readonly) inside @Component/@Directive/
+// @Injectable/@Pipe classes only — plain TS classes are not flagged.
 
 describe('angular/prefer-inject-function [integration]', () => {
   describe('violations', () => {
@@ -32,6 +33,15 @@ describe('angular/prefer-inject-function [integration]', () => {
   });
 
   describe('valid', () => {
+    it('accepts parameter properties in an undecorated class (not Angular DI)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck('prefer-inject-function', `
+        export class SmtpMailer {
+          constructor(private smtp: string, private port: number) {}
+        }
+      `);
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
+    });
+
     it('accepts inject() function pattern', async () => {
       const { diagnostics, raw } = await runBiomeCheck('prefer-inject-function', `
         import { Component, inject } from '@angular/core';
