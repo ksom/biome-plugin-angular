@@ -1,6 +1,21 @@
+// Port of the Angular 17.2+ model() guidance: an @Output() named `xChange`
+// paired with an @Input() named `x` is the two-way binding pattern that
+// model() replaces. The pairing is checked per file via a regex capture on the
+// output name. Unpaired *Change outputs (e.g. Material-style selectionChange
+// events) are NOT flagged.
+// Known false negative: `readonly` properties cannot be matched by GritQL.
 language js
 
-`@Output() $name = $init` where {
-  $name <: r".*Change$",
+or {
+  `@Output($a) $name = $init`,
+  `@Output($a) $name: $t`,
+  `@Output($a) $name!: $t`
+} where {
+  $name <: r"(.*)Change$"($base),
+  $program <: contains or {
+    `@Input($ia) $base = $_`,
+    `@Input($ia) $base: $_`,
+    `@Input($ia) $base!: $_`
+  },
   register_diagnostic(span = $name, message = "Prefer model() over the @Input() + @Output() xyzChange two-way binding pattern (Angular 17.2+).", severity = "warn")
 }
