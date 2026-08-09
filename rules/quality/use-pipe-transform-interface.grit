@@ -1,28 +1,14 @@
-// Limitation: Biome GritQL does not match @Decorator\nclass patterns at runtime.
-// This rule compiles but violations will NOT be detected.
-// Kept in manifest for forward-compatibility when Biome adds decorator+class support.
+// Port of @angular-eslint/use-pipe-transform-interface.
+//
+// Implementation note: GritQL metavariables cannot bind an `implements` clause
+// (`class $n implements $i { $b }` never matches), so instead of matching
+// decorator+class shapes we match the @Pipe decorator and require the file to
+// reference PipeTransform. This covers every class form (export, extends,
+// implements-other). Known false negatives: a file that imports PipeTransform
+// without implementing it, or a multi-pipe file where only one pipe implements it.
 language js
 
-or {
-  `@Pipe($args)
-class $name { $body }` where {
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name extends $ext { $body }` where {
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`,
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name extends $ext implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`,
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  }
+`@Pipe($args)` as $dec where {
+  $program <: not contains `PipeTransform`,
+  register_diagnostic(span = $dec, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
 }
