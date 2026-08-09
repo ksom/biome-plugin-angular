@@ -99,9 +99,8 @@
       "eslintRule": "@angular-eslint/sort-ngmodule-metadata-arrays",
       "category": "conventions",
       "priority": 2,
-      "status": "done",
-      "gritFile": "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
-      "docs": "./docs/rules/sort-ngmodule-metadata-arrays.md"
+      "status": "skipped",
+      "skipReason": "GritQL cannot compare list order, so the rule could only detect the presence of metadata arrays — 100% false positives on sorted code. Removed until order comparison is expressible. The upstream rule was also deprecated and later removed from @angular-eslint."
     },
     {
       "name": "use-lifecycle-interface",

@@ -14,7 +14,6 @@
     "./rules/conventions/no-output-rename.grit",
     "./rules/conventions/no-output-on-prefix.grit",
     "./rules/conventions/pipe-prefix.grit",
-    "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
     "./rules/quality/use-lifecycle-interface.grit",
     "./rules/quality/use-pipe-transform-interface.grit",
     "./rules/quality/contextual-lifecycle.grit",
