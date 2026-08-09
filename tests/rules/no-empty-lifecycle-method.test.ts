@@ -53,6 +53,22 @@ describe('angular/no-empty-lifecycle-method', () => {
       expect(violations[0].methodName).toBe('ngOnChanges');
     });
 
+    it('flags empty lifecycle methods with a ": void" return type annotation', () => {
+      const code = `
+        import { Component, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+
+        @Component({ selector: 'app-root', standalone: true, template: '' })
+        export class AppComponent implements OnInit, OnChanges {
+          ngOnInit(): void {}
+          ngOnChanges(changes: SimpleChanges): void {}
+        }
+      `;
+
+      const violations = detectEmptyLifecycleMethods(code);
+      expect(violations).toHaveLength(2);
+      expect(violations.map((v) => v.methodName)).toEqual(['ngOnInit', 'ngOnChanges']);
+    });
+
     it('flags empty ngAfterViewInit', () => {
       const code = `
         import { Component, AfterViewInit } from '@angular/core';

@@ -15,7 +15,6 @@ describe('createPatternMatcher', () => {
     expect(typeof matcher.detectOutputRename).toBe('function');
     expect(typeof matcher.detectOutputOnPrefix).toBe('function');
     expect(typeof matcher.detectMissingPipePrefix).toBe('function');
-    expect(typeof matcher.detectUnsortedNgModuleArrays).toBe('function');
     expect(typeof matcher.detectMissingLifecycleInterface).toBe('function');
     expect(typeof matcher.detectMissingPipeTransform).toBe('function');
     expect(typeof matcher.detectContextualLifecycleViolations).toBe('function');
@@ -32,7 +31,7 @@ describe('createPatternMatcher', () => {
 
     const violations = matcher.detectMissingStandalone(`
       import { Component } from '@angular/core';
-      @Component({ selector: 'app-root', template: '' })
+      @Component({ selector: 'app-root', standalone: false, template: '' })
       export class AppComponent {}
     `);
 

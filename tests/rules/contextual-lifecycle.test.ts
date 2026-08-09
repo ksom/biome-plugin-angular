@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { detectContextualLifecycleViolations } from '../helpers/pattern-matcher.js';
 
+// Upstream semantics: @Injectable and @Pipe classes may only declare
+// ngOnDestroy — any other hook is a violation. @Component and @Directive
+// allow ALL hooks (directives DO receive view and content hooks).
 describe('angular/contextual-lifecycle', () => {
-  describe('invalid — lifecycle hooks used in wrong contexts', () => {
+  describe('invalid — hooks other than ngOnDestroy in @Injectable / @Pipe', () => {
     it('flags ngAfterViewInit in @Injectable', () => {
       const code = `
         import { Injectable } from '@angular/core';
@@ -36,37 +39,36 @@ describe('angular/contextual-lifecycle', () => {
       expect(violations[0].methodName).toBe('ngAfterContentInit');
     });
 
-    it('flags ngAfterViewInit in @Directive', () => {
+    it('flags ngOnInit in @Injectable (only ngOnDestroy is ever called)', () => {
       const code = `
-        import { Directive } from '@angular/core';
+        import { Injectable } from '@angular/core';
 
-        @Directive({ selector: '[appFoo]', standalone: true })
-        export class FooDirective {
-          ngAfterViewInit() {
-            // directives don't have view children
-          }
+        @Injectable({ providedIn: 'root' })
+        export class UserStore {
+          ngOnInit() { this.load(); }
         }
       `;
 
       const violations = detectContextualLifecycleViolations(code);
       expect(violations).toHaveLength(1);
-      expect(violations[0].methodName).toBe('ngAfterViewInit');
-      expect(violations[0].decoratorName).toBe('Directive');
+      expect(violations[0].methodName).toBe('ngOnInit');
+      expect(violations[0].decoratorName).toBe('Injectable');
     });
 
-    it('flags ngAfterViewChecked in @Directive', () => {
+    it('flags ngOnChanges and ngDoCheck in @Injectable', () => {
       const code = `
-        import { Directive } from '@angular/core';
+        import { Injectable } from '@angular/core';
 
-        @Directive({ selector: '[appFoo]', standalone: true })
-        export class FooDirective {
-          ngAfterViewChecked() { this.check(); }
+        @Injectable({ providedIn: 'root' })
+        export class SomeStore {
+          ngOnChanges() { this.update(); }
+          ngDoCheck() { this.check(); }
         }
       `;
 
       const violations = detectContextualLifecycleViolations(code);
-      expect(violations).toHaveLength(1);
-      expect(violations[0].methodName).toBe('ngAfterViewChecked');
+      expect(violations).toHaveLength(2);
+      expect(violations.map((v) => v.methodName)).toEqual(['ngOnChanges', 'ngDoCheck']);
     });
 
     it('flags ngAfterViewInit in @Pipe', () => {
@@ -99,6 +101,23 @@ describe('angular/contextual-lifecycle', () => {
       const violations = detectContextualLifecycleViolations(code);
       expect(violations).toHaveLength(1);
     });
+
+    it('flags ngOnInit in @Pipe', () => {
+      const code = `
+        import { Pipe, PipeTransform } from '@angular/core';
+
+        @Pipe({ name: 'appFoo', standalone: true })
+        export class FooPipe implements PipeTransform {
+          transform(v: string) { return v; }
+          ngOnInit() { this.init(); }
+        }
+      `;
+
+      const violations = detectContextualLifecycleViolations(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].methodName).toBe('ngOnInit');
+      expect(violations[0].decoratorName).toBe('Pipe');
+    });
   });
 
   describe('edge cases', () => {
@@ -128,22 +147,36 @@ describe('angular/contextual-lifecycle', () => {
       expect(violations).toHaveLength(1);
       expect(violations[0].className).toBe('unknown');
     });
-
-    it('uses "unknown" as className for anonymous class with @Directive violation', () => {
-      const code = `
-        import { Directive } from '@angular/core';
-        @Directive({ selector: '[appFoo]', standalone: true })
-        export default class {
-          ngAfterViewInit() {}
-        }
-      `;
-      const violations = detectContextualLifecycleViolations(code);
-      expect(violations).toHaveLength(1);
-      expect(violations[0].className).toBe('unknown');
-    });
   });
 
-  describe('valid — lifecycle hooks in correct contexts', () => {
+  describe('valid — allowed lifecycle hooks per context', () => {
+    it('accepts ngOnDestroy in @Injectable', () => {
+      const code = `
+        import { Injectable, OnDestroy } from '@angular/core';
+
+        @Injectable({ providedIn: 'root' })
+        export class UserStore implements OnDestroy {
+          ngOnDestroy() { this.sub.unsubscribe(); }
+        }
+      `;
+
+      expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
+    });
+
+    it('accepts ngOnDestroy in @Pipe', () => {
+      const code = `
+        import { Pipe, PipeTransform, OnDestroy } from '@angular/core';
+
+        @Pipe({ name: 'appFoo', standalone: true })
+        export class FooPipe implements PipeTransform, OnDestroy {
+          transform(v: string) { return v; }
+          ngOnDestroy() { this.cleanup(); }
+        }
+      `;
+
+      expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
+    });
+
     it('accepts ngAfterViewInit in @Component', () => {
       const code = `
         import { Component, AfterViewInit } from '@angular/core';
@@ -170,6 +203,32 @@ describe('angular/contextual-lifecycle', () => {
       expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
     });
 
+    it('accepts ngAfterViewInit in @Directive (directives receive view hooks)', () => {
+      const code = `
+        import { Directive, AfterViewInit } from '@angular/core';
+
+        @Directive({ selector: '[appFoo]', standalone: true })
+        export class FooDirective implements AfterViewInit {
+          ngAfterViewInit() { this.init(); }
+        }
+      `;
+
+      expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
+    });
+
+    it('accepts ngAfterViewChecked in @Directive', () => {
+      const code = `
+        import { Directive, AfterViewChecked } from '@angular/core';
+
+        @Directive({ selector: '[appFoo]', standalone: true })
+        export class FooDirective implements AfterViewChecked {
+          ngAfterViewChecked() { this.check(); }
+        }
+      `;
+
+      expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
+    });
+
     it('accepts ngAfterContentInit in @Directive', () => {
       const code = `
         import { Directive, AfterContentInit } from '@angular/core';
@@ -183,14 +242,11 @@ describe('angular/contextual-lifecycle', () => {
       expect(detectContextualLifecycleViolations(code)).toHaveLength(0);
     });
 
-    it('accepts ngOnInit/ngOnDestroy in @Injectable', () => {
+    it('accepts lifecycle-named methods in undecorated classes', () => {
       const code = `
-        import { Injectable, OnInit, OnDestroy } from '@angular/core';
-
-        @Injectable({ providedIn: 'root' })
-        export class UserStore implements OnInit, OnDestroy {
-          ngOnInit() { this.load(); }
-          ngOnDestroy() { this.sub.unsubscribe(); }
+        export class PlainClass {
+          ngOnInit() { this.init(); }
+          ngAfterViewInit() { this.render(); }
         }
       `;
 

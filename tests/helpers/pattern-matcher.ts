@@ -1,8 +1,20 @@
 import { Block, Project, type SourceFile } from 'ts-morph';
 
 /**
- * Lightweight Angular pattern matcher using the TypeScript compiler API.
- * Mirrors the logic expressed in the GritQL rules for unit testing purposes.
+ * Reference-semantics layer for the plugin's Angular rules.
+ *
+ * Each matcher re-implements a rule with ts-morph and documents the INTENDED
+ * semantics (equivalent to the upstream @angular-eslint rule), serving as a
+ * fast, engine-independent spec. The shipped behavior lives in the GritQL
+ * rules under rules/ and is verified by tests/integration/ — those
+ * integration tests are the authority on shipped behavior whenever the two
+ * layers disagree.
+ *
+ * Deliberate divergences from the shipped GritQL rules: the GritQL engine
+ * cannot match `readonly` properties, `implements` clauses, or get/set
+ * accessors. The reference implementations here do NOT mimic those engine
+ * limitations — they follow the intended semantics instead, so some cases
+ * flagged here are known false negatives of the shipped rules.
  *
  * Each matcher returns an array of violation objects (empty = no violations).
  */
@@ -24,9 +36,10 @@ export interface StandaloneViolation {
 }
 
 /**
- * Detects Angular @Component, @Directive, or @Pipe decorators that either:
- *   - omit the `standalone` property entirely, or
- *   - set `standalone: false`
+ * Detects Angular @Component, @Directive, or @Pipe decorators that explicitly
+ * set `standalone: false`. Since Angular 19 standalone is the default, so
+ * omitting the property (or setting `standalone: true`) is valid — only the
+ * explicit opt-out is flagged.
  */
 export function detectMissingStandalone(code: string): StandaloneViolation[] {
   const sourceFile = createSourceFile(code);
@@ -38,14 +51,10 @@ export function detectMissingStandalone(code: string): StandaloneViolation[] {
       if (!decorator) continue;
 
       const args = decorator.getArguments();
-      if (args.length === 0) {
-        violations.push({ decorator: decoratorName, className: cls.getName() ?? 'unknown' });
-        continue;
-      }
+      if (args.length === 0) continue;
 
       const argsText = args[0].getText();
-      const hasStandaloneTrue = /standalone\s*:\s*true/.test(argsText);
-      if (!hasStandaloneTrue) {
+      if (/standalone\s*:\s*false/.test(argsText)) {
         violations.push({ decorator: decoratorName, className: cls.getName() ?? 'unknown' });
       }
     }
@@ -339,67 +348,11 @@ export function detectMissingPipePrefix(code: string, prefix = 'app'): PipePrefi
     if (!nameMatch) continue;
 
     const pipeName = nameMatch[1];
-    if (!pipeName.startsWith(prefix)) {
+    // The prefix must be followed by an uppercase letter (lowerCamelCase pipe
+    // name): "appUpper" is valid, "apple" is a violation.
+    const prefixPattern = new RegExp(`^${prefix}[A-Z]`);
+    if (!prefixPattern.test(pipeName)) {
       violations.push({ className: cls.getName() ?? 'unknown', pipeName, expectedPrefix: prefix });
-    }
-  }
-
-  return violations;
-}
-
-// ---------------------------------------------------------------------------
-// sort-ngmodule-metadata-arrays
-// ---------------------------------------------------------------------------
-
-export interface UnsortedArrayViolation {
-  className: string;
-  arrayName: string;
-  elements: string[];
-  sortedElements: string[];
-}
-
-const NGMODULE_ARRAY_PROPS = ['declarations', 'imports', 'exports', 'providers', 'bootstrap'];
-
-/**
- * Detects NgModule metadata arrays that are not sorted alphabetically
- * (case-insensitive). Checks: declarations, imports, exports, providers, bootstrap.
- */
-export function detectUnsortedNgModuleArrays(code: string): UnsortedArrayViolation[] {
-  const sourceFile = createSourceFile(code);
-  const violations: UnsortedArrayViolation[] = [];
-
-  for (const cls of sourceFile.getClasses()) {
-    const decorator = cls.getDecorator('NgModule');
-    if (!decorator) continue;
-
-    const args = decorator.getArguments();
-    if (args.length === 0) continue;
-
-    const argsText = args[0].getText();
-
-    for (const arrayProp of NGMODULE_ARRAY_PROPS) {
-      // Extract the flat array content (handles simple identifier lists)
-      const arrayMatch = argsText.match(new RegExp(`\\b${arrayProp}\\s*:\\s*\\[([^\\]]+)\\]`));
-      if (!arrayMatch) continue;
-
-      const elements = arrayMatch[1]
-        .split(',')
-        .map((e) => e.trim())
-        .filter((e) => e.length > 0);
-
-      if (elements.length < 2) continue;
-
-      const sorted = [...elements].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-      const isSorted = elements.every((el, i) => el === sorted[i]);
-      if (!isSorted) {
-        violations.push({
-          className: cls.getName() ?? 'unknown',
-          arrayName: arrayProp,
-          elements,
-          sortedElements: sorted,
-        });
-      }
     }
   }
 
@@ -542,19 +495,6 @@ export function detectMissingPipeTransform(code: string): PipeTransformViolation
 // contextual-lifecycle
 // ---------------------------------------------------------------------------
 
-// View hooks only allowed in @Component
-const VIEW_ONLY_HOOKS = new Set(['ngAfterViewInit', 'ngAfterViewChecked']);
-// Content hooks allowed in @Component and @Directive
-const CONTENT_HOOKS = new Set(['ngAfterContentInit', 'ngAfterContentChecked']);
-// Hooks not allowed in @Pipe
-const INVALID_PIPE_HOOKS = new Set([
-  'ngAfterViewInit',
-  'ngAfterViewChecked',
-  'ngAfterContentInit',
-  'ngAfterContentChecked',
-  'ngOnChanges',
-]);
-
 export interface ContextualLifecycleViolation {
   className: string;
   methodName: string;
@@ -564,44 +504,39 @@ export interface ContextualLifecycleViolation {
 
 /**
  * Detects lifecycle methods used in wrong Angular class contexts.
+ *
+ * Upstream @angular-eslint semantics: @Injectable and @Pipe classes may only
+ * declare ngOnDestroy — Angular never calls any other hook on them. Any other
+ * hook (ngOnChanges, ngOnInit, ngDoCheck, ngAfterContentInit/Checked,
+ * ngAfterViewInit/Checked) is a violation. @Component and @Directive allow
+ * ALL hooks — directives DO receive view and content hooks.
  */
 export function detectContextualLifecycleViolations(code: string): ContextualLifecycleViolation[] {
   const sourceFile = createSourceFile(code);
   const violations: ContextualLifecycleViolation[] = [];
 
   for (const cls of sourceFile.getClasses()) {
-    const _isComponent = !!cls.getDecorator('Component');
-    const isDirective = !!cls.getDecorator('Directive');
-    const isPipe = !!cls.getDecorator('Pipe');
-    const isInjectable = !!cls.getDecorator('Injectable');
+    const decoratorName = cls.getDecorator('Injectable')
+      ? 'Injectable'
+      : cls.getDecorator('Pipe')
+        ? 'Pipe'
+        : null;
+
+    // @Component and @Directive (and undecorated classes) allow all hooks.
+    if (!decoratorName) continue;
 
     for (const method of cls.getMethods()) {
       const name = method.getName();
 
       if (!LIFECYCLE_INTERFACE_MAP[name]) continue; // not a lifecycle hook
+      if (name === 'ngOnDestroy') continue; // the only hook allowed here
 
-      if (isPipe && INVALID_PIPE_HOOKS.has(name)) {
-        violations.push({
-          className: cls.getName() ?? 'unknown',
-          methodName: name,
-          decoratorName: 'Pipe',
-          reason: `@Pipe classes cannot use ${name}`,
-        });
-      } else if (isInjectable && (VIEW_ONLY_HOOKS.has(name) || CONTENT_HOOKS.has(name))) {
-        violations.push({
-          className: cls.getName() ?? 'unknown',
-          methodName: name,
-          decoratorName: 'Injectable',
-          reason: `@Injectable classes cannot use view/content lifecycle hook ${name}`,
-        });
-      } else if (isDirective && VIEW_ONLY_HOOKS.has(name)) {
-        violations.push({
-          className: cls.getName() ?? 'unknown',
-          methodName: name,
-          decoratorName: 'Directive',
-          reason: `@Directive cannot use view lifecycle hook ${name} (only @Component can)`,
-        });
-      }
+      violations.push({
+        className: cls.getName() ?? 'unknown',
+        methodName: name,
+        decoratorName,
+        reason: `@${decoratorName} classes may only declare ngOnDestroy — ${name} is never called`,
+      });
     }
   }
 
@@ -859,7 +794,6 @@ export function createPatternMatcher() {
     detectOutputRename,
     detectOutputOnPrefix,
     detectMissingPipePrefix,
-    detectUnsortedNgModuleArrays,
     // Quality rules
     detectMissingLifecycleInterface,
     detectMissingPipeTransform,

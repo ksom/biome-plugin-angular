@@ -111,5 +111,18 @@ describe('angular/prefer-model-signal', () => {
 
       expect(detectTwoWayBindingPairs(code)).toHaveLength(0);
     });
+
+    it('does not flag unpaired Material-style selectionChange output', () => {
+      const code = `
+        import { Component, Output, EventEmitter } from '@angular/core';
+
+        @Component({ selector: 'app-list', standalone: true, template: '' })
+        export class ListComponent {
+          @Output() selectionChange = new EventEmitter<string[]>();
+        }
+      `;
+
+      expect(detectTwoWayBindingPairs(code)).toHaveLength(0);
+    });
   });
 });
