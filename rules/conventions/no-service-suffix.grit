@@ -1,9 +1,20 @@
-// Limitation: GritQL cannot match @Injectable\nclass as one unit,
-// so this matches ANY class ending in "Service" (heuristic).
-// In Angular projects this is accurate; may false-positive in non-Angular code.
+// Port of the Angular v20+ style-guide guidance: drop the "Service" suffix.
+// Only classes decorated with @Injectable are flagged (plain TS classes are not).
+// Patterns include explicit `export class` variants — GritQL treats the export
+// modifier as part of the matched statement. Known false negative: decorated
+// classes with an `implements` clause cannot be matched by GritQL.
 language js
 
-`class $name { $_ }` where {
+or {
+  `@Injectable($a)
+class $name { $_ }`,
+  `@Injectable($a)
+export class $name { $_ }`,
+  `@Injectable($a)
+class $name extends $ext { $_ }`,
+  `@Injectable($a)
+export class $name extends $ext { $_ }`
+} where {
   $name <: r".*Service$",
   register_diagnostic(span = $name, message = "Angular v20+: remove the 'Service' suffix. Use a descriptive name (Store, Api, Client, Facade…).", severity = "warn")
 }
