@@ -1,28 +1,29 @@
+// Port of @angular-eslint/no-empty-lifecycle-method.
+// Each hook needs an explicit `: void` variant — GritQL snippets with a return
+// type only match annotated methods and vice versa. ngOnChanges also gets
+// parameterized variants (it is the only hook that takes an argument).
+// Modifier prefixes (async, protected, override) match implicitly.
 language js
 
 or {
-  `ngOnInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngOnDestroy() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngOnChanges() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngDoCheck() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngAfterContentInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngAfterContentChecked() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngAfterViewInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  },
-  `ngAfterViewChecked() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
-  }
+  `ngOnInit() {}`,
+  `ngOnInit(): void {}`,
+  `ngOnDestroy() {}`,
+  `ngOnDestroy(): void {}`,
+  `ngOnChanges() {}`,
+  `ngOnChanges(): void {}`,
+  `ngOnChanges($p) {}`,
+  `ngOnChanges($p): void {}`,
+  `ngDoCheck() {}`,
+  `ngDoCheck(): void {}`,
+  `ngAfterContentInit() {}`,
+  `ngAfterContentInit(): void {}`,
+  `ngAfterContentChecked() {}`,
+  `ngAfterContentChecked(): void {}`,
+  `ngAfterViewInit() {}`,
+  `ngAfterViewInit(): void {}`,
+  `ngAfterViewChecked() {}`,
+  `ngAfterViewChecked(): void {}`
+} where {
+  register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
 }

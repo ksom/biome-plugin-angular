@@ -25,6 +25,18 @@ describe('angular/no-empty-lifecycle-method [integration]', () => {
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
     });
 
+    it('flags empty hooks with return types and params (CLI-generated style)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck('no-empty-lifecycle-method', `
+        import { Component, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+        @Component({ selector: 'app-root', standalone: true, template: '' })
+        export class AppComponent implements OnInit, OnChanges {
+          ngOnInit(): void {}
+          ngOnChanges(changes: SimpleChanges): void {}
+        }
+      `);
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(2);
+    });
+
     it('flags multiple empty lifecycle methods', async () => {
       const { diagnostics, raw } = await runBiomeCheck('no-empty-lifecycle-method', `
         import { Component } from '@angular/core';
