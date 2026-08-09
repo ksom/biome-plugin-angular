@@ -24,6 +24,18 @@ describe('angular/no-output-on-prefix [integration]', () => {
       `);
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
     });
+
+    it('flags typed and definite-assignment outputs (onLoad: T, onCancel!: T)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck('no-output-on-prefix', `
+        import { Component, Output, EventEmitter } from '@angular/core';
+        @Component({ selector: 'app-root', standalone: true, template: '' })
+        export class App {
+          @Output() onLoad: EventEmitter<void>;
+          @Output() onCancel!: EventEmitter<void>;
+        }
+      `);
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(2);
+    });
   });
 
   describe('valid', () => {

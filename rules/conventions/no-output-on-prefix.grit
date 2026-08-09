@@ -1,6 +1,14 @@
+// Port of @angular-eslint/no-output-on-prefix.
+// Matches initialized, typed, and definite-assignment (!) output properties,
+// with or without a decorator argument. Known false negative: `readonly`
+// properties cannot be matched by GritQL snippets.
 language js
 
-`@Output() $name = $init` where {
+or {
+  `@Output($a) $name = $init`,
+  `@Output($a) $name: $t`,
+  `@Output($a) $name!: $t`
+} where {
   $name <: r"^on[A-Z].*",
   register_diagnostic(span = $name, message = "@Output() property names must not start with 'on' followed by an uppercase letter.")
 }
