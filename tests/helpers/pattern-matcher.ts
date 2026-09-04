@@ -967,6 +967,31 @@ export function detectLifecycleCalls(code: string): LifecycleCallViolation[] {
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-async-lifecycle-method
+// ---------------------------------------------------------------------------
+
+export interface AsyncLifecycleViolation {
+  className: string;
+  methodName: string;
+}
+
+/** Detects lifecycle hooks declared with the async modifier. */
+export function detectAsyncLifecycleMethods(code: string): AsyncLifecycleViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: AsyncLifecycleViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    for (const method of cls.getMethods()) {
+      if (LIFECYCLE_HOOKS.has(method.getName()) && method.isAsync()) {
+        violations.push({ className: cls.getName() ?? 'unknown', methodName: method.getName() });
+      }
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -996,5 +1021,6 @@ export function createPatternMatcher() {
     detectNativeOutputNames,
     detectConflictingLifecycle,
     detectLifecycleCalls,
+    detectAsyncLifecycleMethods,
   };
 }
