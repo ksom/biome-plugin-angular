@@ -6,16 +6,22 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](package.json)
 
-> Biome 2.x plugin that ports `@angular-eslint` rules to GritQL and adds modern Angular signal-based rules.
-> For Angular 17-21 projects migrating from ESLint to Biome.
+> Biome 2.5+ plugin that ports `@angular-eslint` rules to GritQL and adds signal-era
+> Angular rules. For Angular 17-22 projects migrating from ESLint to Biome.
 
 ---
 
 ## Features
 
-- 19 GritQL rules for the Biome 2.x plugin system
-- Ports the most-used `@angular-eslint` rules
-- 6 rules for modern Angular (signals, inject, host properties)
+- 26 GritQL rules for the Biome 2.5+ plugin system
+- Ports the `@angular-eslint` recommended TypeScript rules and the most-used extras
+- Signal-era rules: `input()`, `output()`, `model()`, signal queries, `inject()`, `host: {}`
+- Rules cover every real-world class shape (`implements`, `extends`, `export default`,
+  `readonly` members, parameter decorators, modifiers)
+- An **Angular-safe preset**: enables parameter decorators, turns off the Biome rule that
+  breaks Angular DI, and scopes the plugin to `.ts` files
+- Safe auto-fix for empty lifecycle methods; pointers to the official Angular schematics
+  for the larger migrations
 - CLI helper: `biome-angular init|merge|remove|rules`
 - Every rule verified against the real Biome binary (integration + packed-package tests)
 - Zero runtime dependencies
@@ -27,7 +33,7 @@
 | Tool              | Version   |
 | ----------------- | --------- |
 | Node.js           | >= 18     |
-| `@biomejs/biome`  | >= 2.4.8  |
+| `@biomejs/biome`  | >= 2.5.0  |
 | Angular           | >= 17     |
 
 ---
@@ -54,17 +60,7 @@ npx biome-angular merge
 
 ### Option B — Manual configuration
 
-Add the plugin to your `biome.json`. Biome resolves plugin entries as **paths
-relative to the config file** (not npm package names), so reference the
-installed package directory:
-
-```jsonc
-{
-  "plugins": ["./node_modules/biome-plugin-angular"]
-}
-```
-
-Or extend the shipped preset (which contains exactly that plugins entry):
+Extend the shipped preset from your `biome.json`:
 
 ```jsonc
 {
@@ -72,17 +68,69 @@ Or extend the shipped preset (which contains exactly that plugins entry):
 }
 ```
 
-Biome loads `biome-manifest.jsonc` from the plugin directory and activates all
-19 rules.
+The preset is the recommended path because it also applies three settings that any
+Angular project needs from Biome itself:
+
+```jsonc
+{
+  "plugins": [
+    // Biome resolves plugin entries as paths relative to the config file.
+    // The plugin runs on TypeScript only and skips spec files.
+    { "path": "./node_modules/biome-plugin-angular", "includes": ["**/*.ts", "!**/*.spec.ts"] }
+  ],
+  "javascript": {
+    // Angular constructors use parameter decorators (@Inject, @Optional, @Attribute…).
+    // Biome reports them as a parse error — and skips the file — unless this is on.
+    "parser": { "unsafeParameterDecoratorsEnabled": true }
+  },
+  "linter": {
+    "rules": {
+      // Biome's recommended useImportType rewrites `import { HttpClient }` to
+      // `import type { HttpClient }` when the token is only used as a constructor
+      // parameter type. Angular then fails to build with NG2003 ("No suitable
+      // injection token"). Biome's own docs recommend disabling it for Angular.
+      "style": { "useImportType": "off" }
+    }
+  }
+}
+```
+
+If you prefer to list the plugin yourself, copy the block above rather than only the
+`plugins` entry.
+
+### Running
+
+```bash
+npx biome lint            # report
+npx biome lint --write    # also apply safe fixes (empty lifecycle methods are removed)
+```
+
+### Suppressing a diagnostic
+
+Every message starts with its rule name in brackets. Use that name in a suppression
+comment placed on the line **directly above the flagged code**. For a diagnostic on the
+class name, that is between the decorator and the `class` keyword:
+
+```typescript
+@Component({ selector: 'app-legacy', template: '' })
+// biome-ignore lint/plugin/no-component-suffix: legacy naming kept on purpose
+export class LegacyComponent {
+  // biome-ignore lint/plugin/prefer-signal-inputs: migrated in a later PR
+  @Input() name = '';
+}
+```
+
+A diagnostic inside the decorator (`prefer-standalone`, `component-selector`…) takes the
+comment above the decorator. `// biome-ignore-all lint/plugin/<rule>: reason` at the top
+of a file suppresses the rule for the whole file.
 
 ### Severities
 
-Biome has no per-rule severity configuration for plugins — each rule's severity
-is fixed inside its `.grit` file (`register_diagnostic`). Rules about correctness
-(`no-input-rename`, `no-output-rename`, `no-output-on-prefix`,
-`prefer-standalone`, `contextual-lifecycle`) report **errors**; convention and
-migration rules report **warnings**. To change a severity or disable a rule,
-copy the `.grit` files you want from the package and list them individually:
+Biome has no per-rule severity configuration for plugins — each rule's severity is fixed
+inside its `.grit` file (`register_diagnostic`). Rules about correctness report
+**errors**; convention and migration rules report **warnings**. To change a severity or
+disable a rule, copy the `.grit` files you want from the package and list them
+individually:
 
 ```jsonc
 {
@@ -99,10 +147,10 @@ copy the `.grit` files you want from the package and list them individually:
 
 ### High Priority
 
-| Rule | ESLint equivalent | Severity | Notes |
-| ---- | ----------------- | :------: | ----- |
-| [`prefer-standalone`](docs/rules/prefer-standalone.md) | `@angular-eslint/prefer-standalone` | error | flags only explicit `standalone: false` |
-| [`no-empty-lifecycle-method`](docs/rules/no-empty-lifecycle-method.md) | `@angular-eslint/no-empty-lifecycle-method` | warn | |
+| Rule | ESLint equivalent | Severity | Fix | Notes |
+| ---- | ----------------- | :------: | :-: | ----- |
+| [`prefer-standalone`](docs/rules/prefer-standalone.md) | `@angular-eslint/prefer-standalone` | error | | flags only explicit `standalone: false`; migrate with `ng generate @angular/core:standalone` |
+| [`no-empty-lifecycle-method`](docs/rules/no-empty-lifecycle-method.md) | `@angular-eslint/no-empty-lifecycle-method` | warn | safe | deletes the method when its interface is not implemented; otherwise asks to remove both |
 
 ### Conventions
 
@@ -111,48 +159,72 @@ copy the `.grit` files you want from the package and list them individually:
 | [`no-component-suffix`](docs/rules/no-component-suffix.md) | _(new — Angular v20+)_ | warn | decorator-gated |
 | [`no-directive-suffix`](docs/rules/no-directive-suffix.md) | _(new — Angular v20+)_ | warn | decorator-gated |
 | [`no-service-suffix`](docs/rules/no-service-suffix.md) | _(new — Angular v20+)_ | warn | decorator-gated |
-| [`component-selector`](docs/rules/component-selector.md) | `@angular-eslint/component-selector` | warn | `app` prefix hardcoded* |
-| [`no-input-rename`](docs/rules/no-input-rename.md) | `@angular-eslint/no-input-rename` | error | |
-| [`no-output-rename`](docs/rules/no-output-rename.md) | `@angular-eslint/no-output-rename` | error | |
-| [`no-output-on-prefix`](docs/rules/no-output-on-prefix.md) | `@angular-eslint/no-output-on-prefix` | error | |
+| [`component-selector`](docs/rules/component-selector.md) | `@angular-eslint/component-selector` | warn | `app-` prefix hardcoded* |
+| [`directive-selector`](docs/rules/directive-selector.md) | `@angular-eslint/directive-selector` | warn | `[appCamelCase]`, prefix hardcoded* |
+| [`no-input-rename`](docs/rules/no-input-rename.md) | `@angular-eslint/no-input-rename` | error | decorator and `input()`/`model()` aliases |
+| [`no-output-rename`](docs/rules/no-output-rename.md) | `@angular-eslint/no-output-rename` | error | decorator and `output()` aliases |
+| [`no-output-on-prefix`](docs/rules/no-output-on-prefix.md) | `@angular-eslint/no-output-on-prefix` | error | decorator and `output()` |
+| [`no-output-native`](docs/rules/no-output-native.md) | `@angular-eslint/no-output-native` | error | decorator and `output()` |
 | [`pipe-prefix`](docs/rules/pipe-prefix.md) | `@angular-eslint/pipe-prefix` | warn | `app` prefix hardcoded* |
 
 ### Quality
 
 | Rule | ESLint equivalent | Severity | Notes |
 | ---- | ----------------- | :------: | ----- |
-| [`use-lifecycle-interface`](docs/rules/use-lifecycle-interface.md) | `@angular-eslint/use-lifecycle-interface` | warn | |
-| [`use-pipe-transform-interface`](docs/rules/use-pipe-transform-interface.md) | `@angular-eslint/use-pipe-transform-interface` | warn | per-file check |
+| [`use-lifecycle-interface`](docs/rules/use-lifecycle-interface.md) | `@angular-eslint/use-lifecycle-interface` | warn | per class |
+| [`use-pipe-transform-interface`](docs/rules/use-pipe-transform-interface.md) | `@angular-eslint/use-pipe-transform-interface` | warn | per class |
 | [`contextual-lifecycle`](docs/rules/contextual-lifecycle.md) | `@angular-eslint/contextual-lifecycle` | error | |
+| [`no-conflicting-lifecycle`](docs/rules/no-conflicting-lifecycle.md) | `@angular-eslint/no-conflicting-lifecycle` | error | `ngDoCheck` + `ngOnChanges` |
+| [`no-lifecycle-call`](docs/rules/no-lifecycle-call.md) | `@angular-eslint/no-lifecycle-call` | error | `super.ngXxx()` allowed |
+| [`no-async-lifecycle-method`](docs/rules/no-async-lifecycle-method.md) | `@angular-eslint/no-async-lifecycle-method` | warn | |
+| [`no-pipe-impure`](docs/rules/no-pipe-impure.md) | `@angular-eslint/no-pipe-impure` | warn | |
+| [`no-attribute-decorator`](docs/rules/no-attribute-decorator.md) | `@angular-eslint/no-attribute-decorator` | warn | suggests `HostAttributeToken` |
 
 ### Modern (Angular 17+)
 
 | Rule | ESLint equivalent | Severity | Notes |
 | ---- | ----------------- | :------: | ----- |
-| [`prefer-signal-inputs`](docs/rules/prefer-signal-inputs.md) | _(new)_ | warn | Angular 17.1+ |
-| [`prefer-output-function`](docs/rules/prefer-output-function.md) | _(new)_ | warn | Angular 17.3+ |
-| [`prefer-signal-queries`](docs/rules/prefer-signal-queries.md) | _(new)_ | warn | Angular 17.2+ |
+| [`prefer-signal-inputs`](docs/rules/prefer-signal-inputs.md) | _(new)_ | warn | Angular 17.1+, `ng generate @angular/core:signal-input-migration` |
+| [`prefer-output-function`](docs/rules/prefer-output-function.md) | _(new)_ | warn | Angular 17.3+, `ng generate @angular/core:output-migration` |
+| [`prefer-signal-queries`](docs/rules/prefer-signal-queries.md) | _(new)_ | warn | Angular 17.2+, `ng generate @angular/core:signal-queries-migration` |
 | [`prefer-model-signal`](docs/rules/prefer-model-signal.md) | _(new)_ | warn | Angular 17.2+, requires paired `@Input()` |
 | [`prefer-host-property`](docs/rules/prefer-host-property.md) | _(new)_ | warn | |
-| [`prefer-inject-function`](docs/rules/prefer-inject-function.md) | _(new)_ | warn | decorator-gated |
+| [`prefer-inject-function`](docs/rules/prefer-inject-function.md) | `@angular-eslint/prefer-inject` | warn | any constructor parameter, `ng generate @angular/core:inject` |
 
-\* Biome plugins take no options, so the selector/pipe prefix cannot be
-configured. Projects not using the Angular CLI default `app` prefix should copy
-and adapt the `.grit` file.
+\* Biome plugins take no options, so the selector/pipe prefix cannot be configured.
+Projects not using the Angular CLI default `app` prefix should copy and adapt the `.grit`
+file.
 
-### Known engine limitations
+### Auto-fix and migrations
 
-Biome's GritQL engine cannot match certain TypeScript constructs, which causes
-**false negatives** (never false positives) in specific shapes:
+Biome 2.5 plugins can rewrite code. This plugin only ships a rewrite where it is
+mechanical and safe: `no-empty-lifecycle-method` deletes an empty hook when the class does
+not implement the matching interface (when it does, deleting the method alone would fail
+compilation with TS2420, so the diagnostic asks to remove both). The other migrations
+change templates or module declarations as well, so the rules point to the official
+Angular schematics instead, which handle both sides.
 
-- **`implements` clauses**: decorated classes with an `implements` clause are
-  invisible to decorator+class patterns. Affects the suffix rules,
-  `contextual-lifecycle`, and `prefer-inject-function`.
-- **`readonly` properties**: `@Output() readonly x = …` cannot be matched.
-  Affects `no-output-on-prefix` and `prefer-model-signal`.
+Biome caveat (2.5.12): plugin rewrites are applied per file. When one empty hook in a file
+is fixed, a `biome-ignore` comment on another empty hook **in the same file** does not
+protect it from `--write`. Prefer `biome-ignore-all` on that file, or give the hook a
+statement, until Biome resolves this.
 
-Each limitation is pinned by an `it.fails` integration test, so the suite will
-flag the day a Biome release lifts it.
+The official schematics:
+
+```bash
+ng generate @angular/core:standalone
+ng generate @angular/core:inject
+ng generate @angular/core:signal-input-migration
+ng generate @angular/core:output-migration
+ng generate @angular/core:signal-queries-migration
+```
+
+### Skipped rules
+
+`component-class-suffix` and `directive-class-suffix` are intentionally not ported: the
+Angular v20+ style guide dropped class suffixes, and the inverse rules
+(`no-*-suffix`) are shipped instead. See [`rules-to-migrate.json`](rules-to-migrate.json)
+for the reasoning behind every skipped rule.
 
 ---
 
@@ -160,14 +232,14 @@ flag the day a Biome release lifts it.
 
 ```
 biome-angular init [--force]
-  Create a new biome.json preconfigured with this plugin.
+  Create a new biome.json that extends biome-plugin-angular/presets/recommended.json.
   --force    Overwrite existing biome.json
 
 biome-angular merge
-  Add this plugin to your existing biome.json without overwriting.
+  Add the preset to the "extends" array of your existing biome.json.
 
 biome-angular remove
-  Remove the plugin reference from biome.json (also cleans config
+  Remove the plugin from biome.json ("extends" and "plugins" forms, plus config
   written by pre-1.0 versions of this CLI).
 
 biome-angular rules
@@ -186,7 +258,8 @@ npm uninstall eslint @angular-eslint/eslint-plugin @angular-eslint/template-pars
 ```
 
 Note: this plugin covers TypeScript rules only. `@angular-eslint/template-*`
-(HTML template) rules have no Biome equivalent yet.
+(HTML template) rules have no Biome equivalent yet, and Biome does not lint Angular
+templates.
 
 See [`rules-to-migrate.json`](rules-to-migrate.json) for the full migration tracking list.
 
