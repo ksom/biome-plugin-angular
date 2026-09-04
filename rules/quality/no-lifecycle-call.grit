@@ -1,0 +1,12 @@
+// Port of @angular-eslint/no-lifecycle-call.
+// Lifecycle hooks are called by Angular; calling them by hand (this.ngOnInit(),
+// fixture.componentInstance.ngOnDestroy()…) runs the hook twice or out of
+// order. Calls through `super` are allowed — that is how a derived hook
+// chains to its parent implementation.
+language js
+
+`$object.$hook($args)` as $call where {
+  $hook <: r"^ng(?:OnChanges|OnInit|DoCheck|AfterContentInit|AfterContentChecked|AfterViewInit|AfterViewChecked|OnDestroy)$",
+  $object <: not `super`,
+  register_diagnostic(span = $call, message = "[no-lifecycle-call] Do not call lifecycle hooks explicitly. Angular calls it; explicit calls run it twice or out of order.")
+}

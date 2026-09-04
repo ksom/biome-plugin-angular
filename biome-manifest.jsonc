@@ -21,6 +21,7 @@
     "./rules/quality/use-pipe-transform-interface.grit",
     "./rules/quality/contextual-lifecycle.grit",
     "./rules/quality/no-conflicting-lifecycle.grit",
+    "./rules/quality/no-lifecycle-call.grit",
     "./rules/modern/prefer-signal-inputs.grit",
     "./rules/modern/prefer-output-function.grit",
     "./rules/modern/prefer-signal-queries.grit",

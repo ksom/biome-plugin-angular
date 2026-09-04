@@ -58,6 +58,7 @@ export const rules = {
   ),
   'contextual-lifecycle': join(__dirname, 'rules', 'quality', 'contextual-lifecycle.grit'),
   'no-conflicting-lifecycle': join(__dirname, 'rules', 'quality', 'no-conflicting-lifecycle.grit'),
+  'no-lifecycle-call': join(__dirname, 'rules', 'quality', 'no-lifecycle-call.grit'),
   // modern
   'prefer-signal-inputs': join(__dirname, 'rules', 'modern', 'prefer-signal-inputs.grit'),
   'prefer-output-function': join(__dirname, 'rules', 'modern', 'prefer-output-function.grit'),

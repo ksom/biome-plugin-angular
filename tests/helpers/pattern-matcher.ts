@@ -937,6 +937,36 @@ export function detectConflictingLifecycle(code: string): ConflictingLifecycleVi
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-lifecycle-call
+// ---------------------------------------------------------------------------
+
+export interface LifecycleCallViolation {
+  hook: string;
+  receiver: string;
+}
+
+/**
+ * Detects explicit lifecycle hook calls (`obj.ngOnInit()`). Calls through
+ * `super` are allowed: that is how a derived hook chains to its parent.
+ */
+export function detectLifecycleCalls(code: string): LifecycleCallViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: LifecycleCallViolation[] = [];
+
+  for (const call of sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+    const callee = call.getExpression();
+    if (!Node.isPropertyAccessExpression(callee)) continue;
+    const hook = callee.getName();
+    if (!LIFECYCLE_HOOKS.has(hook)) continue;
+    const receiver = callee.getExpression().getText();
+    if (receiver === 'super') continue;
+    violations.push({ hook, receiver });
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -965,5 +995,6 @@ export function createPatternMatcher() {
     detectInvalidDirectiveSelector,
     detectNativeOutputNames,
     detectConflictingLifecycle,
+    detectLifecycleCalls,
   };
 }
