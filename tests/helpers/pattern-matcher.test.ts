@@ -30,6 +30,7 @@ describe('createPatternMatcher', () => {
     expect(typeof matcher.detectLifecycleCalls).toBe('function');
     expect(typeof matcher.detectAsyncLifecycleMethods).toBe('function');
     expect(typeof matcher.detectImpurePipes).toBe('function');
+    expect(typeof matcher.detectAttributeDecorators).toBe('function');
   });
 
   it('returned functions work correctly via the factory', () => {

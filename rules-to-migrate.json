@@ -210,6 +210,15 @@
       "docs": "./docs/rules/no-pipe-impure.md"
     },
     {
+      "name": "no-attribute-decorator",
+      "eslintRule": "@angular-eslint/no-attribute-decorator",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-attribute-decorator.grit",
+      "docs": "./docs/rules/no-attribute-decorator.md"
+    },
+    {
       "name": "no-inputs-metadata-property",
       "eslintRule": "@angular-eslint/no-inputs-metadata-property",
       "category": "quality",

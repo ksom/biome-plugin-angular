@@ -1017,6 +1017,36 @@ export function detectImpurePipes(code: string): ImpurePipeViolation[] {
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-attribute-decorator
+// ---------------------------------------------------------------------------
+
+export interface AttributeDecoratorViolation {
+  className: string;
+  parameterName: string;
+}
+
+/** Detects @Attribute() on constructor parameters. */
+export function detectAttributeDecorators(code: string): AttributeDecoratorViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: AttributeDecoratorViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    for (const ctor of cls.getConstructors()) {
+      for (const param of ctor.getParameters()) {
+        if (param.getDecorator('Attribute')) {
+          violations.push({
+            className: cls.getName() ?? 'unknown',
+            parameterName: param.getName(),
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -1048,5 +1078,6 @@ export function createPatternMatcher() {
     detectLifecycleCalls,
     detectAsyncLifecycleMethods,
     detectImpurePipes,
+    detectAttributeDecorators,
   };
 }

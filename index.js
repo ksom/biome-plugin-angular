@@ -66,6 +66,7 @@ export const rules = {
     'no-async-lifecycle-method.grit',
   ),
   'no-pipe-impure': join(__dirname, 'rules', 'quality', 'no-pipe-impure.grit'),
+  'no-attribute-decorator': join(__dirname, 'rules', 'quality', 'no-attribute-decorator.grit'),
   // modern
   'prefer-signal-inputs': join(__dirname, 'rules', 'modern', 'prefer-signal-inputs.grit'),
   'prefer-output-function': join(__dirname, 'rules', 'modern', 'prefer-output-function.grit'),
