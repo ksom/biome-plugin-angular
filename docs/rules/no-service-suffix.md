@@ -12,9 +12,8 @@ using a descriptive name that expresses the class's responsibility instead.
 The check is decorator-gated: only classes decorated with `@Injectable` are flagged.
 Plain TypeScript or NestJS classes named `*Service` are **not** flagged.
 
-**Known false negative:** decorated classes with an `implements` clause
-(e.g. `class UserService implements OnDestroy`) cannot be matched by GritQL and are
-not flagged.
+Every class shape is matched: `export`, `export default`, `extends`, generics and
+`implements` clauses.
 
 > "We're updating our style guide to no longer recommend adding suffixes like `Component`,
 > `Directive`, `Service`, or `Pipe` to class names."

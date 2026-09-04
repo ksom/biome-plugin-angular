@@ -1,14 +1,15 @@
 // Port of @angular-eslint/use-pipe-transform-interface.
-//
-// Implementation note: GritQL metavariables cannot bind an `implements` clause
-// (`class $n implements $i { $b }` never matches), so instead of matching
-// decorator+class shapes we match the @Pipe decorator and require the file to
-// reference PipeTransform. This covers every class form (export, extends,
-// implements-other). Known false negatives: a file that imports PipeTransform
-// without implementing it, or a multi-pipe file where only one pipe implements it.
+// A @Pipe class must list PipeTransform in its implements clause. The check is
+// per class: the implements clause is read from Biome's native class node, so
+// a file that imports PipeTransform for another pipe does not exempt this one.
 language js
 
-`@Pipe($args)` as $dec where {
-  $program <: not contains `PipeTransform`,
-  register_diagnostic(span = $dec, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
+or {
+  JsClassDeclaration(decorators = $decorators, id = $name, implements_clause = $implements),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(id = $name, implements_clause = $implements)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(id = $name, implements_clause = $implements)))
+} where {
+  $decorators <: contains `@Pipe($args)`,
+  $implements <: not contains `PipeTransform`,
+  register_diagnostic(span = $name, message = "[use-pipe-transform-interface] @Pipe classes must implement the PipeTransform interface.", severity = "warn")
 }

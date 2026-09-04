@@ -1,20 +1,18 @@
 // Port of the Angular v20+ style-guide guidance: drop the "Directive" suffix.
 // Only classes decorated with @Directive are flagged (plain TS classes are not).
-// Patterns include explicit `export class` variants — GritQL treats the export
-// modifier as part of the matched statement. Known false negative: decorated
-// classes with an `implements` clause cannot be matched by GritQL.
+//
+// Classes are matched through Biome's native AST nodes instead of code
+// snippets so that every class shape is covered: `export`, `export default`,
+// `extends`, generics and `implements` clauses. Decorators written before
+// `export` are attached to the JsExport node, hence the three branches.
 language js
 
 or {
-  `@Directive($a)
-class $name { $_ }`,
-  `@Directive($a)
-export class $name { $_ }`,
-  `@Directive($a)
-class $name extends $ext { $_ }`,
-  `@Directive($a)
-export class $name extends $ext { $_ }`
+  JsClassDeclaration(decorators = $decorators, id = $name),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(id = $name)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(id = $name)))
 } where {
+  $decorators <: contains `@Directive($args)`,
   $name <: r".*Directive$",
-  register_diagnostic(span = $name, message = "Angular v20+: remove the 'Directive' suffix from class names. Name classes after what they represent.", severity = "warn")
+  register_diagnostic(span = $name, message = "[no-directive-suffix] Angular v20+: remove the 'Directive' suffix from class names. Name classes after what they represent.", severity = "warn")
 }

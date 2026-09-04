@@ -8,12 +8,7 @@
 
 Classes decorated with `@Pipe` should implement the `PipeTransform` interface. This makes the `transform()` method type-safe and communicates intent clearly.
 
-**How it works:** the check is file-level. The rule flags every `@Pipe` decorator in a file that never references `PipeTransform` anywhere. (GritQL cannot match a decorator + `implements` clause as one unit, so the implementation cannot inspect each class's heritage clause directly.)
-
-**Known false negatives:**
-
-- A file that imports (or otherwise mentions) `PipeTransform` without actually implementing it is not flagged.
-- In a file containing several pipes, if only one of them implements `PipeTransform`, the others are not flagged.
+**How it works:** the check is per class. The rule reads the `implements` clause of every `@Pipe`-decorated class and flags the class when `PipeTransform` is missing from it, whatever else the file imports or declares.
 
 ## Examples
 

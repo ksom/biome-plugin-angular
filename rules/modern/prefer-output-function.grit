@@ -1,10 +1,8 @@
+// Prefer the output() function (Angular 17.3+) over @Output() + EventEmitter.
+// The official migration `ng generate @angular/core:output-migration`
+// converts decorators and their usages together.
 language js
 
-or {
-  `@Output()` where {
-    register_diagnostic(span = $match, message = "Prefer the output() function over @Output() + EventEmitter (Angular 17.3+).", severity = "warn")
-  },
-  `@Output($args)` where {
-    register_diagnostic(span = $match, message = "Prefer the output() function over @Output() + EventEmitter (Angular 17.3+).", severity = "warn")
-  }
+`@Output($args)` as $decorator where {
+  register_diagnostic(span = $decorator, message = "[prefer-output-function] Prefer the output() function over @Output() + EventEmitter (Angular 17.3+). Run `ng generate @angular/core:output-migration` to migrate.", severity = "warn")
 }

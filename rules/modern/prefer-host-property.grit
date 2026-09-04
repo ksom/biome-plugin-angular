@@ -1,16 +1,8 @@
+// Angular v20+ style guide: declare host bindings and listeners in the
+// `host` property of @Component/@Directive instead of the @HostBinding and
+// @HostListener decorators.
 language js
 
-or {
-  `@HostBinding($args)` where {
-    register_diagnostic(span = $match, message = "Prefer host: {} in @Component/@Directive over @HostBinding/@HostListener decorators.", severity = "warn")
-  },
-  `@HostListener($args)` where {
-    register_diagnostic(span = $match, message = "Prefer host: {} in @Component/@Directive over @HostBinding/@HostListener decorators.", severity = "warn")
-  },
-  `@HostBinding()` where {
-    register_diagnostic(span = $match, message = "Prefer host: {} in @Component/@Directive over @HostBinding/@HostListener decorators.", severity = "warn")
-  },
-  `@HostListener()` where {
-    register_diagnostic(span = $match, message = "Prefer host: {} in @Component/@Directive over @HostBinding/@HostListener decorators.", severity = "warn")
-  }
+or { `@HostBinding($args)`, `@HostListener($args)` } as $decorator where {
+  register_diagnostic(span = $decorator, message = "[prefer-host-property] Prefer host: {} in @Component/@Directive over @HostBinding/@HostListener decorators.", severity = "warn")
 }

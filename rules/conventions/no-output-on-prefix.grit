@@ -1,14 +1,17 @@
 // Port of @angular-eslint/no-output-on-prefix.
-// Matches initialized, typed, and definite-assignment (!) output properties,
-// with or without a decorator argument. Known false negative: `readonly`
-// properties cannot be matched by GritQL snippets.
+// Matches class properties through Biome's native property node, so every
+// shape is covered: initialized, typed, definite-assignment (!), `readonly`,
+// with or without a decorator argument. Covers both the @Output() decorator
+// and the signal-based output() / outputFromObservable() functions.
 language js
 
-or {
-  `@Output($a) $name = $init`,
-  `@Output($a) $name: $t`,
-  `@Output($a) $name!: $t`
-} where {
+JsPropertyClassMember(modifiers = $modifiers, name = $name, value = $value) where {
+  or {
+    $modifiers <: contains `@Output($args)`,
+    $value <: JsInitializerClause(expression = JsCallExpression(callee = $callee)) where {
+      $callee <: or { `output`, `outputFromObservable` }
+    }
+  },
   $name <: r"^on[A-Z].*",
-  register_diagnostic(span = $name, message = "@Output() property names must not start with 'on' followed by an uppercase letter.")
+  register_diagnostic(span = $name, message = "[no-output-on-prefix] Output names must not start with 'on' followed by an uppercase letter: the 'on' prefix belongs to the parent's handler, e.g. (submitted)=\"onSubmit()\".")
 }

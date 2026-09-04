@@ -1,13 +1,33 @@
+// Port of @angular-eslint/no-input-rename.
+// Covers the @Input() decorator (string alias or `alias` option) and the
+// signal-based input() / input.required() / model() / model.required()
+// functions, with or without type arguments.
 language js
 
 or {
   `@Input($alias)` where {
     $alias <: r"^['\"].*['\"]$",
-    register_diagnostic(span = $alias, message = "Avoid renaming @Input() properties. Use the property name as the public API.")
+    register_diagnostic(span = $alias, message = "[no-input-rename] Avoid renaming @Input() properties. Use the property name as the public API.")
   },
-
   `@Input({ $opts })` where {
     $opts <: contains `alias: $_`,
-    register_diagnostic(span = $opts, message = "Avoid renaming @Input() properties. Use the property name as the public API.")
+    register_diagnostic(span = $opts, message = "[no-input-rename] Avoid renaming @Input() properties. Use the property name as the public API.")
+  },
+  or {
+    `input($opts)`,
+    `input($default, $opts)`,
+    `input<$type>($opts)`,
+    `input<$type>($default, $opts)`,
+    `input.required($opts)`,
+    `input.required<$type>($opts)`,
+    `model($opts)`,
+    `model($default, $opts)`,
+    `model<$type>($opts)`,
+    `model<$type>($default, $opts)`,
+    `model.required($opts)`,
+    `model.required<$type>($opts)`
+  } where {
+    $opts <: contains `alias: $_`,
+    register_diagnostic(span = $opts, message = "[no-input-rename] Avoid aliasing signal inputs. Use the property name as the public API.")
   }
 }

@@ -3,41 +3,20 @@
 // calls any other lifecycle hook on them. @Component and @Directive may use
 // all hooks (directives DO receive view/content hooks), so they are not checked.
 //
-// Implementation notes:
-// - Patterns include explicit `export class` variants: GritQL treats the export
-//   modifier as part of the matched statement.
-// - Classes with an `implements` clause cannot be matched (GritQL metavariables
-//   cannot bind heritage clauses) — known false negative.
-// - Hooks are detected as bare identifiers inside the class body so any
-//   signature shape matches (`: void`, `async`, parameters).
+// Classes are matched through Biome's native AST nodes so that every shape is
+// covered (`export`, `export default`, `extends`, `implements`). The offending
+// hook is located as a method member, so any signature (`: void`, `async`,
+// parameters, modifiers) is detected and the diagnostic points at the method.
 language js
 
 or {
-  `@Injectable($args)
-class $name { $body }`,
-  `@Injectable($args)
-export class $name { $body }`,
-  `@Injectable($args)
-class $name extends $ext { $body }`,
-  `@Injectable($args)
-export class $name extends $ext { $body }`,
-  `@Pipe($args)
-class $name { $body }`,
-  `@Pipe($args)
-export class $name { $body }`,
-  `@Pipe($args)
-class $name extends $ext { $body }`,
-  `@Pipe($args)
-export class $name extends $ext { $body }`
+  JsClassDeclaration(decorators = $decorators, members = $members),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(members = $members)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(members = $members)))
 } where {
-  $body <: contains or {
-    `ngOnChanges`,
-    `ngOnInit`,
-    `ngDoCheck`,
-    `ngAfterContentInit`,
-    `ngAfterContentChecked`,
-    `ngAfterViewInit`,
-    `ngAfterViewChecked`
+  $decorators <: contains or { `@Injectable($args)`, `@Pipe($args)` },
+  $members <: contains JsMethodClassMember(name = $hook) where {
+    $hook <: r"^ng(?:OnChanges|OnInit|DoCheck|AfterContentInit|AfterContentChecked|AfterViewInit|AfterViewChecked)$"
   },
-  register_diagnostic(span = $name, message = "Lifecycle hook used in the wrong context: @Injectable and @Pipe classes only support ngOnDestroy. Other hooks are never called on them.")
+  register_diagnostic(span = $hook, message = "[contextual-lifecycle] Lifecycle hook used in the wrong context: @Injectable and @Pipe classes only support ngOnDestroy. Other hooks are never called on them.")
 }

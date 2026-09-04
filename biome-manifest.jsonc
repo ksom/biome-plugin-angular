@@ -1,6 +1,6 @@
 // Biome 2.x plugin manifest — required entry point when loading via
 // `"plugins": ["biome-plugin-angular"]` in biome.json.
-// Biome 2.4.8+ format: version (integer) + rules (array of .grit paths).
+// Biome 2.5+ format: version (integer) + rules (array of .grit paths).
 {
   "version": 1,
   "rules": [

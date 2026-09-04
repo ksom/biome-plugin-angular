@@ -13,7 +13,8 @@ Enforces that `@Component` selectors follow the Angular Style Guide conventions:
 - **Prefix:** must start with `app-` (hardcoded — see Configuration)
 
 These conventions ensure selectors are consistent, predictable, and avoid collisions
-with native HTML elements.
+with native HTML elements. Comma-separated selector lists (`'app-a, app-b'`) are accepted
+when every entry is valid.
 
 ## Examples
 

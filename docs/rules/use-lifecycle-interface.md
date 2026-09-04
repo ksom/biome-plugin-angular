@@ -8,6 +8,8 @@
 
 Classes that implement Angular lifecycle methods should explicitly declare the corresponding interface. This makes intent clear and catches method signature mistakes at compile time.
 
+**How it works:** the check is per class. Each lifecycle method is matched (any signature: `: void`, `async`, parameters, modifiers) and the `implements` clause of its own class must name the matching interface. Importing the interface without implementing it is flagged.
+
 | Method | Required interface |
 |--------|-------------------|
 | `ngOnChanges` | `OnChanges` |

@@ -1,4 +1,11 @@
-import { Block, Project, type SourceFile } from 'ts-morph';
+import {
+  Block,
+  Node,
+  Project,
+  type PropertyDeclaration,
+  type SourceFile,
+  SyntaxKind,
+} from 'ts-morph';
 
 /**
  * Reference-semantics layer for the plugin's Angular rules.
@@ -10,11 +17,10 @@ import { Block, Project, type SourceFile } from 'ts-morph';
  * integration tests are the authority on shipped behavior whenever the two
  * layers disagree.
  *
- * Deliberate divergences from the shipped GritQL rules: the GritQL engine
- * cannot match `readonly` properties, `implements` clauses, or get/set
- * accessors. The reference implementations here do NOT mimic those engine
- * limitations — they follow the intended semantics instead, so some cases
- * flagged here are known false negatives of the shipped rules.
+ * The shipped rules match classes and members through Biome's native AST
+ * nodes, so `implements` clauses, `readonly` members and modifiers are
+ * covered on both layers. Get/set accessors remain a deliberate divergence:
+ * the reference implementations follow the intended semantics there.
  *
  * Each matcher returns an array of violation objects (empty = no violations).
  */
@@ -750,30 +756,29 @@ export interface ConstructorInjectionViolation {
   parameterType: string;
 }
 
+const DI_DECORATORS = ['Component', 'Directive', 'Injectable', 'Pipe'];
+
 /**
- * Detects constructor parameters with access modifiers (the Angular DI pattern).
- * Suggests replacing with inject() function calls.
+ * Detects constructor parameters in Angular DI classes (@Component, @Directive,
+ * @Injectable, @Pipe). Angular injects every constructor parameter of those
+ * classes, with or without an access modifier, so each one is a violation.
+ * Undecorated classes are not Angular DI and are ignored.
  */
 export function detectConstructorInjection(code: string): ConstructorInjectionViolation[] {
   const sourceFile = createSourceFile(code);
   const violations: ConstructorInjectionViolation[] = [];
 
   for (const cls of sourceFile.getClasses()) {
+    if (!DI_DECORATORS.some((d) => cls.getDecorator(d))) continue;
+
     for (const ctor of cls.getConstructors()) {
       for (const param of ctor.getParameters()) {
-        const modifiers = param.getModifiers().map((m) => m.getText());
-        const hasAccessModifier = modifiers.some((m) =>
-          ['private', 'protected', 'public', 'readonly'].includes(m),
-        );
-
-        if (hasAccessModifier) {
-          const typeNode = param.getTypeNode();
-          violations.push({
-            className: cls.getName() ?? 'unknown',
-            parameterName: param.getName(),
-            parameterType: typeNode?.getText() ?? 'unknown',
-          });
-        }
+        const typeNode = param.getTypeNode();
+        violations.push({
+          className: cls.getName() ?? 'unknown',
+          parameterName: param.getName(),
+          parameterType: typeNode?.getText() ?? 'unknown',
+        });
       }
     }
   }

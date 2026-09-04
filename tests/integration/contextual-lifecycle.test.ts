@@ -67,10 +67,7 @@ describe('angular/contextual-lifecycle [integration]', () => {
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
     });
 
-    // GritQL metavariables cannot bind an `implements` clause, so decorated
-    // classes WITH `implements` are invisible to the rule. Documented false
-    // negative — flips to failing the day Biome supports it.
-    it.fails('flags ngOnInit in @Injectable that has an implements clause (known FN)', async () => {
+    it('flags ngOnInit in @Injectable that has an implements clause', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
         'contextual-lifecycle',
         `

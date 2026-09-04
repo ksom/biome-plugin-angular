@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,7 +42,7 @@ let fileCounter = 0;
 /**
  * Maps a rule name to its .grit file path.
  */
-const RULE_PATHS: Record<string, string> = {
+const RULE_PATHS: Record<string, string | string[]> = {
   'prefer-standalone': 'rules/high-priority/prefer-standalone.grit',
   'no-empty-lifecycle-method': 'rules/high-priority/no-empty-lifecycle-method.grit',
   'no-service-suffix': 'rules/conventions/no-service-suffix.grit',
@@ -76,14 +76,20 @@ function getConfigDir(rule: string): string {
   const configDir = join(TEMP_DIR, `config-${rule}`);
   mkdirSync(configDir, { recursive: true });
 
-  const gritPath = resolve(ROOT, ruleRelPath);
+  const gritPaths = (Array.isArray(ruleRelPath) ? ruleRelPath : [ruleRelPath]).map((p) =>
+    resolve(ROOT, p),
+  );
 
   writeFileSync(
     join(configDir, 'biome.json'),
     JSON.stringify(
       {
-        $schema: 'https://biomejs.dev/schemas/2.4.8/schema.json',
-        plugins: [gritPath],
+        $schema: 'https://biomejs.dev/schemas/2.5.12/schema.json',
+        plugins: gritPaths,
+        // Angular constructors use parameter decorators (@Inject, @Optional,
+        // @Attribute…), which Biome only parses with this flag — the shipped
+        // preset enables it the same way.
+        javascript: { parser: { unsafeParameterDecoratorsEnabled: true } },
         formatter: { enabled: false },
         assist: { enabled: false },
         linter: {
@@ -156,6 +162,25 @@ export async function runBiomeCheck(rule: string, code: string): Promise<BiomeCh
   }
 
   return { diagnostics, raw };
+}
+
+/**
+ * Runs `biome lint --write` on a snippet with a single rule loaded and returns
+ * the file content after Biome applied the rule's safe fixes.
+ */
+export async function runBiomeFix(rule: string, code: string): Promise<string> {
+  const inputFile = join(TEMP_DIR, `fix_${fileCounter++}.ts`);
+  writeFileSync(inputFile, code);
+  const configDir = getConfigDir(rule);
+  try {
+    await execFileAsync(BIOME_BIN, ['lint', '--write', `--config-path=${configDir}`, inputFile], {
+      maxBuffer: 4 * 1024 * 1024,
+      timeout: 25_000,
+    });
+  } catch {
+    // Non-zero exit when diagnostics remain; the file is still rewritten.
+  }
+  return readFileSync(inputFile, 'utf8');
 }
 
 export { createPatternMatcher } from './pattern-matcher.js';

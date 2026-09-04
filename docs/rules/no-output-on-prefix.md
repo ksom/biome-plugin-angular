@@ -6,7 +6,7 @@
 
 ## Overview
 
-Disallows naming `@Output()` properties with an `on` prefix followed by an uppercase
+Disallows naming outputs with an `on` prefix followed by an uppercase
 letter (e.g. `onSubmit`, `onChange`, `onClick`). In Angular templates, event bindings
 already use the `(event)="onHandler()"` convention — the `on` prefix belongs to the
 *handler method in the parent*, not to the output itself.
@@ -24,6 +24,8 @@ export class FormComponent {
   @Output() onChange: EventEmitter<string>;         // ❌ typed only
   @Output() onClick!: EventEmitter<void>;           // ❌ definite assignment
   @Output('click') onPress = new EventEmitter<void>(); // ❌ decorator argument
+  readonly onSave = output<void>();                 // ❌ signal output
+  readonly onLoad = outputFromObservable(this.load$); // ❌ observable output
 }
 ```
 
@@ -52,12 +54,11 @@ export class FormComponent {
 
 - `onion` is **not** flagged — the `on` prefix rule only applies when followed by an uppercase letter.
 - `@Input()` properties named `onSomething` are not flagged — this rule targets `@Output()` only.
-- Signal-based outputs (`output()`) are not covered.
-- Initialized (`= new EventEmitter()`), typed (`: EventEmitter<T>`), and
-  definite-assignment (`!: EventEmitter<T>`) properties are all matched, with or without
-  a decorator argument.
-- **Known false negative:** `readonly` output properties
-  (`@Output() readonly onSubmit = ...`) cannot be matched by GritQL and are not flagged.
+- Signal-based outputs (`output()`, `outputFromObservable()`) are covered, with or
+  without type arguments.
+- Initialized (`= new EventEmitter()`), typed (`: EventEmitter<T>`), definite-assignment
+  (`!: EventEmitter<T>`) and `readonly` properties are all matched, with or without a
+  decorator argument.
 
 ## Migration from @angular-eslint
 

@@ -1,16 +1,9 @@
+// Prefer the signal-based query functions (Angular 17.2+) over the
+// @ViewChild/@ViewChildren/@ContentChild/@ContentChildren decorators. The
+// official migration `ng generate @angular/core:signal-queries-migration`
+// converts decorators and their usages together.
 language js
 
-or {
-  `@ViewChild($args)` where {
-    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
-  },
-  `@ViewChildren($args)` where {
-    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
-  },
-  `@ContentChild($args)` where {
-    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
-  },
-  `@ContentChildren($args)` where {
-    register_diagnostic(span = $match, message = "Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+).", severity = "warn")
-  }
+or { `@ViewChild($args)`, `@ViewChildren($args)`, `@ContentChild($args)`, `@ContentChildren($args)` } as $decorator where {
+  register_diagnostic(span = $decorator, message = "[prefer-signal-queries] Prefer signal-based query functions (viewChild, viewChildren, contentChild, contentChildren) over decorator-based queries (Angular 17.2+). Run `ng generate @angular/core:signal-queries-migration` to migrate.", severity = "warn")
 }

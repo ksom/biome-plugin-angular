@@ -2,11 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { runBiomeCheck } from '../helpers/biome-runner.js';
 
 describe('angular/use-lifecycle-interface [integration]', () => {
-  // The rule matches lifecycle METHODS and requires the corresponding
-  // interface to be referenced somewhere in the file (GritQL cannot bind
-  // implements clauses, so per-class checking is impossible). Per-file
-  // semantics: a file importing the interface without implementing it is a
-  // known false negative.
+  // The rule matches each lifecycle METHOD and reads the implements clause of
+  // its enclosing class through Biome's native class node (per-class check).
   describe('violations', () => {
     it('flags ngOnInit without OnInit interface', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
@@ -115,9 +112,7 @@ describe('angular/use-lifecycle-interface [integration]', () => {
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
     });
 
-    // Per-file matching: importing the interface exempts every class in the
-    // file even without an implements clause. Documented false negative.
-    it.fails('flags ngOnInit when OnInit is imported but not implemented (known FN)', async () => {
+    it('flags ngOnInit when OnInit is imported but not implemented', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
         'use-lifecycle-interface',
         `

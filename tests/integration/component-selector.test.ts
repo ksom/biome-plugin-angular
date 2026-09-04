@@ -59,10 +59,7 @@ describe('angular/component-selector [integration]', () => {
       expect(diagnostics[0].message).toContain("kebab-case with the 'app-' prefix");
     });
 
-    // Known false positive: each selector in the list is valid kebab-case with
-    // the app- prefix, but the regex validates the whole string instead of each
-    // comma-separated selector. Should eventually be fixed.
-    it.fails('accepts multi-selector list of valid app- selectors (known FP)', async () => {
+    it('accepts multi-selector list of valid app- selectors', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
         'component-selector',
         `

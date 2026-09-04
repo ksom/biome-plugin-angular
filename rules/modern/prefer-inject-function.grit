@@ -1,49 +1,21 @@
-// Port of the Angular 14+ guidance: prefer inject() over constructor DI.
-// Only flags constructors inside @Component/@Directive/@Injectable/@Pipe
-// classes, so plain TS or NestJS classes using parameter properties are not
-// flagged. Patterns include explicit `export class` variants — GritQL treats
-// the export modifier as part of the matched statement.
-// Known false negatives: decorated classes with an `implements` clause cannot
-// be matched by GritQL, and DI without an access modifier
-// (constructor(dep: Service) { this.dep = dep }) is undetectable statically.
+// Port of @angular-eslint/prefer-inject: prefer inject() over constructor
+// parameter injection (Angular 14+). Every constructor parameter of a
+// @Component/@Directive/@Injectable/@Pipe class is injected by Angular, with
+// or without an access modifier, so any non-empty constructor is flagged.
+// Plain TS or NestJS classes using parameter properties are not flagged.
+//
+// Classes are matched through Biome's native AST nodes so that every shape is
+// covered (`export`, `export default`, `extends`, `implements`).
 language js
 
 or {
-  `@Component($a)
-class $name { $body }`,
-  `@Component($a)
-export class $name { $body }`,
-  `@Component($a)
-class $name extends $ext { $body }`,
-  `@Component($a)
-export class $name extends $ext { $body }`,
-  `@Directive($a)
-class $name { $body }`,
-  `@Directive($a)
-export class $name { $body }`,
-  `@Directive($a)
-class $name extends $ext { $body }`,
-  `@Directive($a)
-export class $name extends $ext { $body }`,
-  `@Injectable($a)
-class $name { $body }`,
-  `@Injectable($a)
-export class $name { $body }`,
-  `@Injectable($a)
-class $name extends $ext { $body }`,
-  `@Injectable($a)
-export class $name extends $ext { $body }`,
-  `@Pipe($a)
-class $name { $body }`,
-  `@Pipe($a)
-export class $name { $body }`,
-  `@Pipe($a)
-class $name extends $ext { $body }`,
-  `@Pipe($a)
-export class $name extends $ext { $body }`
+  JsClassDeclaration(decorators = $decorators, members = $members),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(members = $members)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(members = $members)))
 } where {
-  $body <: contains `constructor($params) { $_ }` where {
-    $params <: contains or { `private`, `protected`, `public`, `readonly` }
+  $decorators <: contains or { `@Component($args)`, `@Directive($args)`, `@Injectable($args)`, `@Pipe($args)` },
+  $members <: contains JsConstructorClassMember(parameters = $params) where {
+    $params <: contains or { TsPropertyParameter(), JsFormalParameter() }
   },
-  register_diagnostic(span = $params, message = "Prefer inject() over constructor-based dependency injection (Angular 14+).", severity = "warn")
+  register_diagnostic(span = $params, message = "[prefer-inject-function] Prefer inject() over constructor parameter injection (Angular 14+). Run `ng generate @angular/core:inject` to migrate.", severity = "warn")
 }

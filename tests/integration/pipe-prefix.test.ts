@@ -18,7 +18,7 @@ describe('angular/pipe-prefix [integration]', () => {
       `,
       );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
-      expect(diagnostics[0].message).toContain('start with the configured prefix');
+      expect(diagnostics[0].message).toContain("start with the 'app' prefix");
     });
 
     it('flags pipe name with wrong prefix', async () => {
@@ -33,7 +33,7 @@ describe('angular/pipe-prefix [integration]', () => {
       `,
       );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
-      expect(diagnostics[0].message).toContain('start with the configured prefix');
+      expect(diagnostics[0].message).toContain("start with the 'app' prefix");
     });
 
     // Actual behavior (verified): 'apple' starts with "app" but the regex
@@ -51,7 +51,7 @@ describe('angular/pipe-prefix [integration]', () => {
       `,
       );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
-      expect(diagnostics[0].message).toContain('start with the configured prefix');
+      expect(diagnostics[0].message).toContain("start with the 'app' prefix");
     });
   });
 

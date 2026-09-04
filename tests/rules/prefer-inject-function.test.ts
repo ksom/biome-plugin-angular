@@ -103,16 +103,29 @@ describe('angular/prefer-inject-function', () => {
       expect(detectConstructorInjection(code)).toHaveLength(0);
     });
 
-    it('accepts constructor without access modifiers (non-DI parameters)', () => {
+    it('flags a parameter without access modifier (Angular still injects it)', () => {
       const code = `
         import { Component } from '@angular/core';
+        import { HttpClient } from '@angular/common/http';
 
         @Component({ selector: 'app-foo', standalone: true, template: '' })
         export class FooComponent {
-          constructor(someValue: string) {
-            this.title = someValue;
+          private http: HttpClient;
+          constructor(http: HttpClient) {
+            this.http = http;
           }
-          title = '';
+        }
+      `;
+
+      const violations = detectConstructorInjection(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].parameterName).toBe('http');
+    });
+
+    it('accepts parameter properties in an undecorated class (not Angular DI)', () => {
+      const code = `
+        export class SmtpMailer {
+          constructor(private smtp: string, private port: number) {}
         }
       `;
 
@@ -121,6 +134,8 @@ describe('angular/prefer-inject-function', () => {
 
     it('uses "unknown" className and type for anonymous class with untyped param', () => {
       const code = `
+        import { Injectable } from '@angular/core';
+        @Injectable()
         export default class {
           constructor(private dep) {}
         }

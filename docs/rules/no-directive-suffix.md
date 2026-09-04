@@ -13,9 +13,8 @@ and reflects the **Angular v20+ style guide** update.
 The check is decorator-gated: only classes decorated with `@Directive` are flagged.
 Plain TypeScript classes named `*Directive` are **not** flagged.
 
-**Known false negative:** decorated classes with an `implements` clause
-(e.g. `class HighlightDirective implements OnInit`) cannot be matched by GritQL and are
-not flagged.
+Every class shape is matched: `export`, `export default`, `extends`, generics and
+`implements` clauses.
 
 > "We're updating our style guide to no longer recommend adding suffixes like `Component`,
 > `Directive`, `Service`, or `Pipe` to class names."

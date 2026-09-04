@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { runBiomeCheck } from '../helpers/biome-runner.js';
 
 describe('angular/use-pipe-transform-interface [integration]', () => {
-  // The rule matches the @Pipe decorator and requires the file to reference
-  // PipeTransform (GritQL cannot bind `implements` clauses, so decorator+class
-  // matching is impossible for implements-classes). Per-file semantics.
+  // The rule reads the implements clause of each @Pipe class through Biome's
+  // native class node, so the check is per class, not per file.
   describe('violations', () => {
     it('flags @Pipe class with no implements clause', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
@@ -94,10 +93,7 @@ describe('angular/use-pipe-transform-interface [integration]', () => {
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
     });
 
-    // Per-file matching: a file that imports PipeTransform exempts every @Pipe
-    // in it, even one that does not implement the interface. Documented false
-    // negative of the file-level approach.
-    it.fails('flags a non-implementing @Pipe when the file imports PipeTransform (known FN)', async () => {
+    it('flags a non-implementing @Pipe even when the file imports PipeTransform', async () => {
       const { diagnostics, raw } = await runBiomeCheck(
         'use-pipe-transform-interface',
         `

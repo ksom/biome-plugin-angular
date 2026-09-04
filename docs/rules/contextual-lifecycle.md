@@ -57,13 +57,11 @@ export class FooDirective {
 }
 ```
 
-## Known limitations
+## Detection
 
-- Classes with an `implements` clause are not matched (GritQL metavariables cannot bind
-  heritage clauses), so a violating `@Injectable` class declared as
-  `class UserStore implements OnInit { ... }` is a **false negative**.
-- Hooks are detected as bare identifiers inside the class body, so any signature shape
-  is caught (`: void`, `async`, parameters).
+- Every class shape is matched (`export`, `export default`, `extends`, `implements`).
+- Hooks are located as method members, so any signature shape is caught (`: void`,
+  `async`, parameters, modifiers) and the diagnostic points at the offending method.
 
 ## Configuration
 

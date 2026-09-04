@@ -8,9 +8,7 @@
 
 Prefer `model()` for two-way binding over the `@Input()` + `@Output() xyzChange` pattern. The `model()` signal function (stable since Angular 17.2) reduces boilerplate for the two-way binding convention.
 
-**Detection:** this rule flags an `@Output()` property whose name ends with `Change` only when a matching `@Input()` property with the base name (e.g. `value` for `valueChange`) exists in the **same file**. Unpaired `*Change` outputs — such as Material-style `selectionChange` events with no corresponding input — are **not** flagged. Initialized (`= ...`), typed (`: T`), and definite-assignment (`!: T`) properties are all matched.
-
-**Known false negative:** `readonly` properties (e.g. `@Output() readonly valueChange = ...`) cannot be matched by GritQL and are not flagged.
+**Detection:** this rule flags an `@Output()` property whose name ends with `Change` only when a matching `@Input()` property with the base name (e.g. `value` for `valueChange`) exists in the **same file**. Unpaired `*Change` outputs — such as Material-style `selectionChange` events with no corresponding input — are **not** flagged. Initialized (`= ...`), typed (`: T`), definite-assignment (`!: T`) and `readonly` properties are all matched.
 
 ## Examples
 

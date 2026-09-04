@@ -1,45 +1,51 @@
 // Port of @angular-eslint/use-lifecycle-interface.
-//
-// Implementation note: GritQL metavariables cannot bind an `implements` clause,
-// so class-shape branches like `class $n implements $i { $b }` never match.
-// Instead, match each lifecycle METHOD and require the file to reference the
-// corresponding interface (import + implements both appear as identifiers).
-// Known false negative: a file that imports the interface without implementing
-// it. Each hook needs a `: void` variant (annotated methods are distinct nodes);
-// ngOnChanges also gets parameterized variants.
+// Every lifecycle method must have its interface (OnInit for ngOnInit, …) in
+// the implements clause of ITS class. The method is matched first, then the
+// enclosing class node is read through `within`, so the check is per class
+// (not per file) and any method signature is covered (`: void`, `async`,
+// parameters, modifiers). One branch per hook: diagnostic messages are
+// static strings, and each one names the missing interface.
 language js
 
 or {
-  or { `ngOnInit() { $_ }`, `ngOnInit(): void { $_ }` } where {
-    $program <: not contains `OnInit`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngOnInit: implement the OnInit interface.", severity = "warn")
+  JsMethodClassMember(name = `ngOnChanges`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `OnChanges`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngOnChanges: implement the OnChanges interface.", severity = "warn")
   },
-  or { `ngOnDestroy() { $_ }`, `ngOnDestroy(): void { $_ }` } where {
-    $program <: not contains `OnDestroy`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngOnDestroy: implement the OnDestroy interface.", severity = "warn")
+  JsMethodClassMember(name = `ngOnInit`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `OnInit`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngOnInit: implement the OnInit interface.", severity = "warn")
   },
-  or { `ngOnChanges() { $_ }`, `ngOnChanges(): void { $_ }`, `ngOnChanges($p) { $_ }`, `ngOnChanges($p): void { $_ }` } where {
-    $program <: not contains `OnChanges`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngOnChanges: implement the OnChanges interface.", severity = "warn")
+  JsMethodClassMember(name = `ngDoCheck`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `DoCheck`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngDoCheck: implement the DoCheck interface.", severity = "warn")
   },
-  or { `ngDoCheck() { $_ }`, `ngDoCheck(): void { $_ }` } where {
-    $program <: not contains `DoCheck`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngDoCheck: implement the DoCheck interface.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterContentInit`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `AfterContentInit`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngAfterContentInit: implement the AfterContentInit interface.", severity = "warn")
   },
-  or { `ngAfterContentInit() { $_ }`, `ngAfterContentInit(): void { $_ }` } where {
-    $program <: not contains `AfterContentInit`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngAfterContentInit: implement the AfterContentInit interface.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterContentChecked`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `AfterContentChecked`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngAfterContentChecked: implement the AfterContentChecked interface.", severity = "warn")
   },
-  or { `ngAfterContentChecked() { $_ }`, `ngAfterContentChecked(): void { $_ }` } where {
-    $program <: not contains `AfterContentChecked`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngAfterContentChecked: implement the AfterContentChecked interface.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterViewInit`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `AfterViewInit`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngAfterViewInit: implement the AfterViewInit interface.", severity = "warn")
   },
-  or { `ngAfterViewInit() { $_ }`, `ngAfterViewInit(): void { $_ }` } where {
-    $program <: not contains `AfterViewInit`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngAfterViewInit: implement the AfterViewInit interface.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterViewChecked`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `AfterViewChecked`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngAfterViewChecked: implement the AfterViewChecked interface.", severity = "warn")
   },
-  or { `ngAfterViewChecked() { $_ }`, `ngAfterViewChecked(): void { $_ }` } where {
-    $program <: not contains `AfterViewChecked`,
-    register_diagnostic(span = $match, message = "Lifecycle method ngAfterViewChecked: implement the AfterViewChecked interface.", severity = "warn")
+  JsMethodClassMember(name = `ngOnDestroy`) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: not contains `OnDestroy`,
+    register_diagnostic(span = $method, message = "[use-lifecycle-interface] Lifecycle method ngOnDestroy: implement the OnDestroy interface.", severity = "warn")
   }
 }
