@@ -24,6 +24,7 @@ describe('createPatternMatcher', () => {
     expect(typeof matcher.detectTwoWayBindingPairs).toBe('function');
     expect(typeof matcher.detectHostDecorators).toBe('function');
     expect(typeof matcher.detectConstructorInjection).toBe('function');
+    expect(typeof matcher.detectInvalidDirectiveSelector).toBe('function');
   });
 
   it('returned functions work correctly via the factory', () => {

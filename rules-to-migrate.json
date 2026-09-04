@@ -79,10 +79,9 @@
       "eslintRule": "@angular-eslint/directive-selector",
       "category": "conventions",
       "priority": 2,
-      "status": "todo",
-      "gritFile": null,
-      "docs": null,
-      "notes": "Enforces directive selector style: prefix, type (attribute), casing"
+      "status": "done",
+      "gritFile": "./rules/conventions/directive-selector.grit",
+      "docs": "./docs/rules/directive-selector.md"
     },
     {
       "name": "no-input-rename",

@@ -786,6 +786,43 @@ export function detectConstructorInjection(code: string): ConstructorInjectionVi
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// directive-selector
+// ---------------------------------------------------------------------------
+
+const DIRECTIVE_SELECTOR_ENTRY = /^\[app[A-Z][A-Za-z0-9]*\]$/;
+
+/**
+ * Detects @Directive selectors that are not camelCase attribute selectors with
+ * the `app` prefix. Comma-separated lists are valid when every entry is.
+ */
+export function detectInvalidDirectiveSelector(code: string): SelectorViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: SelectorViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    const decorator = cls.getDecorator('Directive');
+    const arg = decorator?.getArguments()[0];
+    if (!arg || !Node.isObjectLiteralExpression(arg)) continue;
+    const prop = arg.getProperty('selector');
+    if (!prop || !Node.isPropertyAssignment(prop)) continue;
+    const init = prop.getInitializer();
+    if (!init || !Node.isStringLiteral(init)) continue;
+
+    const selector = init.getLiteralText();
+    const valid = selector.split(',').every((s) => DIRECTIVE_SELECTOR_ENTRY.test(s.trim()));
+    if (!valid) {
+      violations.push({
+        className: cls.getName() ?? 'unknown',
+        selector,
+        reason: 'not [appCamelCase]',
+      });
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -810,5 +847,7 @@ export function createPatternMatcher() {
     detectTwoWayBindingPairs,
     detectHostDecorators,
     detectConstructorInjection,
+    // Rules added with the native-AST rewrite
+    detectInvalidDirectiveSelector,
   };
 }

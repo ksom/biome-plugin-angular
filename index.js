@@ -46,6 +46,7 @@ export const rules = {
   'no-output-rename': join(__dirname, 'rules', 'conventions', 'no-output-rename.grit'),
   'no-output-on-prefix': join(__dirname, 'rules', 'conventions', 'no-output-on-prefix.grit'),
   'pipe-prefix': join(__dirname, 'rules', 'conventions', 'pipe-prefix.grit'),
+  'directive-selector': join(__dirname, 'rules', 'conventions', 'directive-selector.grit'),
   // quality
   'use-lifecycle-interface': join(__dirname, 'rules', 'quality', 'use-lifecycle-interface.grit'),
   'use-pipe-transform-interface': join(
