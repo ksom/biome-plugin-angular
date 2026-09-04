@@ -1,3 +1,21 @@
 {
-  "plugins": ["./node_modules/biome-plugin-angular"]
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+  "plugins": [
+    {
+      "path": "./node_modules/biome-plugin-angular",
+      "includes": ["**/*.ts", "!**/*.spec.ts"]
+    }
+  ],
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useImportType": "off"
+      }
+    }
+  }
 }

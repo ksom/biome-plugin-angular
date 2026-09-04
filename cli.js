@@ -8,9 +8,11 @@
  *   remove    — Remove biome-plugin-angular from an existing biome.json
  *   rules     — List all available rules and their status
  *
- * Note: Biome resolves plugin entries as paths relative to the config file,
- * and per-rule severities are set inside each .grit rule (register_diagnostic),
- * not in biome.json — there is no per-rule severity configuration for plugins.
+ * The generated configuration extends the shipped preset
+ * (biome-plugin-angular/presets/recommended.json), which loads the plugin and
+ * applies the Angular-safe Biome settings (parameter decorators enabled,
+ * style/useImportType off). Per-rule severities are set inside each .grit
+ * rule (register_diagnostic) — there is no per-rule configuration for plugins.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -20,7 +22,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const PLUGIN_NAME = 'biome-plugin-angular';
-const PLUGIN_PATH = `./node_modules/${PLUGIN_NAME}`;
+const PRESET = `${PLUGIN_NAME}/presets/recommended.json`;
+const BIOME_SCHEMA = 'https://biomejs.dev/schemas/2.5.12/schema.json';
+
+/** True when a plugins/extends entry points at this package (any form). */
+function referencesPlugin(entry) {
+  const value = typeof entry === 'string' ? entry : entry?.path;
+  return typeof value === 'string' && value.includes(PLUGIN_NAME);
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -65,9 +74,10 @@ function cmdInit(args) {
   }
 
   writeJson(targetPath, {
-    plugins: [PLUGIN_PATH],
+    $schema: BIOME_SCHEMA,
+    extends: [PRESET],
   });
-  success(`Created biome.json with ${PLUGIN_NAME}.`);
+  success(`Created biome.json extending ${PRESET}.`);
   log('');
   log('Next steps:');
   log('  1. npx @biomejs/biome lint .');
@@ -83,10 +93,12 @@ function cmdMerge() {
 
   const existing = readJson(targetPath);
 
-  if (!Array.isArray(existing.plugins)) existing.plugins = [];
-  const alreadyConfigured = existing.plugins.some((p) => p.includes(PLUGIN_NAME));
+  const alreadyConfigured =
+    (Array.isArray(existing.plugins) && existing.plugins.some(referencesPlugin)) ||
+    (Array.isArray(existing.extends) && existing.extends.some(referencesPlugin));
   if (!alreadyConfigured) {
-    existing.plugins.push(PLUGIN_PATH);
+    if (!Array.isArray(existing.extends)) existing.extends = [];
+    existing.extends.push(PRESET);
   }
 
   writeJson(targetPath, existing);
@@ -106,9 +118,11 @@ function cmdRemove() {
 
   const config = readJson(targetPath);
 
-  if (Array.isArray(config.plugins)) {
-    config.plugins = config.plugins.filter((p) => !p.includes(PLUGIN_NAME));
-    if (config.plugins.length === 0) delete config.plugins;
+  for (const key of ['plugins', 'extends']) {
+    if (Array.isArray(config[key])) {
+      config[key] = config[key].filter((entry) => !referencesPlugin(entry));
+      if (config[key].length === 0) delete config[key];
+    }
   }
 
   // Clean up the invalid linter.rules.plugins key written by pre-1.0 versions

@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -113,6 +113,8 @@ describe('consumer smoke test [integration]', () => {
     await execFileAsync('node', ['node_modules/biome-plugin-angular/cli.js', 'init'], {
       cwd: consumerDir,
     });
+    const written = JSON.parse(readFileSync(join(consumerDir, 'biome.json'), 'utf8'));
+    expect(written.extends).toEqual(['biome-plugin-angular/presets/recommended.json']);
 
     const { diagnostics } = await lint('violation.ts');
     // Same violations as above — proves the generated config both loads and
@@ -122,6 +124,24 @@ describe('consumer smoke test [integration]', () => {
     for (const d of diagnostics) {
       expect(d.category).toBe('plugin');
     }
+  });
+
+  it('cli merge adds the preset once and cli remove strips it', async () => {
+    writeFileSync(
+      join(consumerDir, 'biome.json'),
+      JSON.stringify({ formatter: { enabled: false } }, null, 2),
+    );
+    const cli = ['node_modules/biome-plugin-angular/cli.js'];
+    await execFileAsync('node', [...cli, 'merge'], { cwd: consumerDir });
+    await execFileAsync('node', [...cli, 'merge'], { cwd: consumerDir });
+    let cfg = JSON.parse(readFileSync(join(consumerDir, 'biome.json'), 'utf8'));
+    expect(cfg.extends).toEqual(['biome-plugin-angular/presets/recommended.json']);
+    expect(cfg.formatter).toEqual({ enabled: false });
+
+    await execFileAsync('node', [...cli, 'remove'], { cwd: consumerDir });
+    cfg = JSON.parse(readFileSync(join(consumerDir, 'biome.json'), 'utf8'));
+    expect(cfg.extends).toBeUndefined();
+    expect(cfg.formatter).toEqual({ enabled: false });
   });
 
   it('preset works via extends from the package', async () => {
@@ -143,6 +163,71 @@ describe('consumer smoke test [integration]', () => {
     for (const d of diagnostics) {
       expect(d.category).toBe('plugin');
     }
+  });
+
+  it('preset keeps Angular code parseable and buildable', async () => {
+    writeFileSync(
+      join(consumerDir, 'biome.json'),
+      JSON.stringify({ extends: ['biome-plugin-angular/presets/recommended.json'] }, null, 2),
+    );
+    // Real-world Angular: parameter decorators in the constructor (a parse
+    // error in Biome's default configuration), a class that implements a
+    // lifecycle interface, and a type-only usage of an injected token that
+    // Biome's useImportType would otherwise rewrite to `import type` — which
+    // breaks Angular DI at build time (NG2003).
+    writeFileSync(
+      join(consumerDir, 'real-world.ts'),
+      [
+        "import { Component, Inject, OnInit } from '@angular/core';",
+        "import { DOCUMENT } from '@angular/common';",
+        "import { HttpClient } from '@angular/common/http';",
+        "@Component({ selector: 'app-user', template: '' })",
+        'export class UserComponent implements OnInit {',
+        '  constructor(@Inject(DOCUMENT) private doc: Document, private http: HttpClient) {}',
+        '  ngOnInit(): void {}',
+        '  ngOnDestroy(): void {}',
+        '}',
+        '',
+      ].join('\n'),
+    );
+
+    const { diagnostics } = await lint('real-world.ts');
+    const messages = diagnostics.map((d) => d.message);
+    expect(
+      diagnostics.every((d) => d.category !== 'parse'),
+      messages.join('\n'),
+    ).toBe(true);
+    expect(messages.some((m) => m.includes('[no-component-suffix]'))).toBe(true);
+    expect(messages.some((m) => m.includes('[prefer-inject-function]'))).toBe(true);
+    expect(messages.some((m) => m.includes('[no-empty-lifecycle-method]'))).toBe(true);
+    expect(diagnostics.some((d) => d.category === 'lint/style/useImportType')).toBe(false);
+
+    // --write applies the plugin's safe fix and nothing that breaks DI.
+    try {
+      await execFileAsync(BIOME_BIN, ['lint', '--write', 'real-world.ts'], { cwd: consumerDir });
+    } catch {
+      // remaining diagnostics make biome exit non-zero; the file is written
+    }
+    const fixed = readFileSync(join(consumerDir, 'real-world.ts'), 'utf8');
+    // ngOnInit is kept: the class implements OnInit, deleting it would break the build.
+    expect(fixed).toContain('ngOnInit(): void {}');
+    // ngOnDestroy is removed: OnDestroy is not implemented.
+    expect(fixed).not.toContain('ngOnDestroy');
+    expect(fixed).not.toContain('import type');
+  });
+
+  it('spec files are excluded by the preset', async () => {
+    writeFileSync(
+      join(consumerDir, 'user.spec.ts'),
+      [
+        "import { Component } from '@angular/core';",
+        "@Component({ selector: 'host', standalone: false, template: '' })",
+        'export class HostComponent {}',
+        '',
+      ].join('\n'),
+    );
+    const { diagnostics } = await lint('user.spec.ts');
+    expect(diagnostics.filter((d) => d.category === 'plugin')).toHaveLength(0);
   });
 
   it('cli rules lists rules from the installed package without crashing', async () => {
