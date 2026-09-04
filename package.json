@@ -1,7 +1,7 @@
 {
   "name": "biome-plugin-angular",
   "version": "1.0.0",
-  "description": "Biome 2.x plugin for Angular — GritQL port of @angular-eslint rules",
+  "description": "Biome 2.5+ plugin for Angular 17-22: GritQL port of @angular-eslint rules plus signal-era rules, with an Angular-safe preset",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -25,7 +25,8 @@
     "gritql",
     "plugin",
     "angular-eslint",
-    "typescript"
+    "typescript",
+    "signals"
   ],
   "author": "Virgile Vivier <virgilevivier@gmail.com>",
   "license": "MIT",
@@ -42,10 +43,10 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "@biomejs/biome": ">=2.4.8 <3"
+    "@biomejs/biome": ">=2.5.0 <3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.5",
+    "@biomejs/biome": "^2.5.12",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/github": "^12.0.6",

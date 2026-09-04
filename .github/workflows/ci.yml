@@ -78,6 +78,33 @@ jobs:
       - name: Integration tests
         run: npm run test:integration
 
+  biome-min:
+    name: Integration tests against minimum supported Biome (2.5.0)
+    runs-on: ubuntu-latest
+    # Guards the peerDependencies range: native AST node patterns and plugin
+    # rewrites both require Biome 2.5.0.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Biome 2.5.0
+        run: |
+          npm install --no-save @biomejs/biome@2.5.0
+          npx biome --version
+
+      - name: Integration tests
+        run: npm run test:integration
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
