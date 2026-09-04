@@ -823,6 +823,97 @@ export function detectInvalidDirectiveSelector(code: string): SelectorViolation[
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-output-native
+// ---------------------------------------------------------------------------
+
+const NATIVE_EVENT_NAMES = new Set([
+  'abort',
+  'blur',
+  'change',
+  'click',
+  'close',
+  'contextmenu',
+  'copy',
+  'cut',
+  'dblclick',
+  'drag',
+  'dragend',
+  'dragenter',
+  'dragleave',
+  'dragover',
+  'dragstart',
+  'drop',
+  'error',
+  'focus',
+  'focusin',
+  'focusout',
+  'input',
+  'invalid',
+  'keydown',
+  'keypress',
+  'keyup',
+  'load',
+  'message',
+  'mousedown',
+  'mouseenter',
+  'mouseleave',
+  'mousemove',
+  'mouseout',
+  'mouseover',
+  'mouseup',
+  'open',
+  'paste',
+  'pause',
+  'play',
+  'progress',
+  'reset',
+  'resize',
+  'scroll',
+  'select',
+  'submit',
+  'toggle',
+  'touchcancel',
+  'touchend',
+  'touchmove',
+  'touchstart',
+  'transitionend',
+  'wheel',
+]);
+
+const OUTPUT_FUNCTIONS = new Set(['output', 'outputFromObservable']);
+
+/** True when a class property is an output: @Output() or output()/outputFromObservable(). */
+function isOutputProperty(prop: PropertyDeclaration): boolean {
+  if (prop.getDecorator('Output')) return true;
+  const init = prop.getInitializer();
+  if (!init || !Node.isCallExpression(init)) return false;
+  return OUTPUT_FUNCTIONS.has(init.getExpression().getText());
+}
+
+export interface OutputNativeViolation {
+  className: string;
+  propertyName: string;
+}
+
+/**
+ * Detects outputs (decorator or signal-based) named after a native DOM event.
+ */
+export function detectNativeOutputNames(code: string): OutputNativeViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: OutputNativeViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    for (const prop of cls.getProperties()) {
+      if (isOutputProperty(prop) && NATIVE_EVENT_NAMES.has(prop.getName())) {
+        violations.push({ className: cls.getName() ?? 'unknown', propertyName: prop.getName() });
+      }
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -849,5 +940,6 @@ export function createPatternMatcher() {
     detectConstructorInjection,
     // Rules added with the native-AST rewrite
     detectInvalidDirectiveSelector,
+    detectNativeOutputNames,
   };
 }

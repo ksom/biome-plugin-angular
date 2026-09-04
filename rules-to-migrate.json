@@ -111,6 +111,15 @@
       "docs": "./docs/rules/no-output-on-prefix.md"
     },
     {
+      "name": "no-output-native",
+      "eslintRule": "@angular-eslint/no-output-native",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-output-native.grit",
+      "docs": "./docs/rules/no-output-native.md"
+    },
+    {
       "name": "pipe-prefix",
       "eslintRule": "@angular-eslint/pipe-prefix",
       "category": "conventions",

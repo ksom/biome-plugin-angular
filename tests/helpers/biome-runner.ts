@@ -58,6 +58,7 @@ const RULE_PATHS: Record<string, string | string[]> = {
   'no-output-on-prefix': 'rules/conventions/no-output-on-prefix.grit',
   'pipe-prefix': 'rules/conventions/pipe-prefix.grit',
   'directive-selector': 'rules/conventions/directive-selector.grit',
+  'no-output-native': 'rules/conventions/no-output-native.grit',
   'use-lifecycle-interface': 'rules/quality/use-lifecycle-interface.grit',
   'use-pipe-transform-interface': 'rules/quality/use-pipe-transform-interface.grit',
   'contextual-lifecycle': 'rules/quality/contextual-lifecycle.grit',
