@@ -992,6 +992,31 @@ export function detectAsyncLifecycleMethods(code: string): AsyncLifecycleViolati
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-pipe-impure
+// ---------------------------------------------------------------------------
+
+export interface ImpurePipeViolation {
+  className: string;
+}
+
+/** Detects @Pipe({ pure: false }). */
+export function detectImpurePipes(code: string): ImpurePipeViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: ImpurePipeViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    const arg = cls.getDecorator('Pipe')?.getArguments()[0];
+    if (!arg || !Node.isObjectLiteralExpression(arg)) continue;
+    const pure = arg.getProperty('pure');
+    if (pure && Node.isPropertyAssignment(pure) && pure.getInitializer()?.getText() === 'false') {
+      violations.push({ className: cls.getName() ?? 'unknown' });
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -1022,5 +1047,6 @@ export function createPatternMatcher() {
     detectConflictingLifecycle,
     detectLifecycleCalls,
     detectAsyncLifecycleMethods,
+    detectImpurePipes,
   };
 }

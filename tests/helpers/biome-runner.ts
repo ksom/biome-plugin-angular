@@ -65,6 +65,7 @@ const RULE_PATHS: Record<string, string | string[]> = {
   'no-conflicting-lifecycle': 'rules/quality/no-conflicting-lifecycle.grit',
   'no-lifecycle-call': 'rules/quality/no-lifecycle-call.grit',
   'no-async-lifecycle-method': 'rules/quality/no-async-lifecycle-method.grit',
+  'no-pipe-impure': 'rules/quality/no-pipe-impure.grit',
   'prefer-signal-inputs': 'rules/modern/prefer-signal-inputs.grit',
   'prefer-output-function': 'rules/modern/prefer-output-function.grit',
   'prefer-signal-queries': 'rules/modern/prefer-signal-queries.grit',

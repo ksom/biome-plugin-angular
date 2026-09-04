@@ -23,6 +23,7 @@
     "./rules/quality/no-conflicting-lifecycle.grit",
     "./rules/quality/no-lifecycle-call.grit",
     "./rules/quality/no-async-lifecycle-method.grit",
+    "./rules/quality/no-pipe-impure.grit",
     "./rules/modern/prefer-signal-inputs.grit",
     "./rules/modern/prefer-output-function.grit",
     "./rules/modern/prefer-signal-queries.grit",

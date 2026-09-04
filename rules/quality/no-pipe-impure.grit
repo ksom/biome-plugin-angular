@@ -1,0 +1,9 @@
+// Port of @angular-eslint/no-pipe-impure.
+// An impure pipe (pure: false) runs on every change-detection cycle instead of
+// only when its inputs change, which is a common source of performance issues.
+language js
+
+`@Pipe({ $args })` where {
+  $args <: contains `pure: false` as $impure,
+  register_diagnostic(span = $impure, message = "[no-pipe-impure] Impure pipes (pure: false) re-run on every change detection cycle. Prefer a pure pipe, or compute the value in the component.", severity = "warn")
+}
