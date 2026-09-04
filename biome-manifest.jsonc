@@ -6,6 +6,7 @@
   "rules": [
     "./rules/high-priority/prefer-standalone.grit",
     "./rules/high-priority/no-empty-lifecycle-method.grit",
+    "./rules/high-priority/fixes/no-empty-lifecycle-method.grit",
     "./rules/conventions/no-service-suffix.grit",
     "./rules/conventions/no-directive-suffix.grit",
     "./rules/conventions/no-component-suffix.grit",

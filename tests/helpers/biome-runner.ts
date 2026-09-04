@@ -44,7 +44,11 @@ let fileCounter = 0;
  */
 const RULE_PATHS: Record<string, string | string[]> = {
   'prefer-standalone': 'rules/high-priority/prefer-standalone.grit',
-  'no-empty-lifecycle-method': 'rules/high-priority/no-empty-lifecycle-method.grit',
+  // One rule, two files with the same stem (non-fixable and fixable cases).
+  'no-empty-lifecycle-method': [
+    'rules/high-priority/no-empty-lifecycle-method.grit',
+    'rules/high-priority/fixes/no-empty-lifecycle-method.grit',
+  ],
   'no-service-suffix': 'rules/conventions/no-service-suffix.grit',
   'no-directive-suffix': 'rules/conventions/no-directive-suffix.grit',
   'no-component-suffix': 'rules/conventions/no-component-suffix.grit',

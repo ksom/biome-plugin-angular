@@ -28,6 +28,15 @@ export const rules = {
     'high-priority',
     'no-empty-lifecycle-method.grit',
   ),
+  // Second half of the same rule (same plugin name): the safe-fix cases.
+  // Load both files to get the complete rule.
+  'no-empty-lifecycle-method/fix': join(
+    __dirname,
+    'rules',
+    'high-priority',
+    'fixes',
+    'no-empty-lifecycle-method.grit',
+  ),
   // conventions
   'no-component-suffix': join(__dirname, 'rules', 'conventions', 'no-component-suffix.grit'),
   'no-directive-suffix': join(__dirname, 'rules', 'conventions', 'no-directive-suffix.grit'),
