@@ -914,6 +914,29 @@ export function detectNativeOutputNames(code: string): OutputNativeViolation[] {
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// no-conflicting-lifecycle
+// ---------------------------------------------------------------------------
+
+export interface ConflictingLifecycleViolation {
+  className: string;
+}
+
+/** Detects classes declaring both ngDoCheck and ngOnChanges. */
+export function detectConflictingLifecycle(code: string): ConflictingLifecycleViolation[] {
+  const sourceFile = createSourceFile(code);
+  const violations: ConflictingLifecycleViolation[] = [];
+
+  for (const cls of sourceFile.getClasses()) {
+    const names = new Set(cls.getMethods().map((m) => m.getName()));
+    if (names.has('ngDoCheck') && names.has('ngOnChanges')) {
+      violations.push({ className: cls.getName() ?? 'unknown' });
+    }
+  }
+
+  return violations;
+}
+
 /** Convenience factory so tests can destructure a single import. */
 export function createPatternMatcher() {
   return {
@@ -941,5 +964,6 @@ export function createPatternMatcher() {
     // Rules added with the native-AST rewrite
     detectInvalidDirectiveSelector,
     detectNativeOutputNames,
+    detectConflictingLifecycle,
   };
 }

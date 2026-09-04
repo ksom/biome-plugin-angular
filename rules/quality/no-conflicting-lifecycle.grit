@@ -1,0 +1,14 @@
+// Port of @angular-eslint/no-conflicting-lifecycle.
+// ngDoCheck and ngOnChanges must not be used on the same class: DoCheck runs
+// right after OnChanges on every change-detection cycle, so both hooks react
+// to the same input changes and the class does duplicate work.
+language js
+
+or {
+  JsClassDeclaration(id = $name, members = $body),
+  JsClassExportDefaultDeclaration(id = $name, members = $body)
+} where {
+  $body <: contains JsMethodClassMember(name = `ngDoCheck`),
+  $body <: contains JsMethodClassMember(name = `ngOnChanges`),
+  register_diagnostic(span = $name, message = "[no-conflicting-lifecycle] ngDoCheck and ngOnChanges must not be declared on the same class: DoCheck runs after every OnChanges and duplicates its work.")
+}

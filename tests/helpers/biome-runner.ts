@@ -62,6 +62,7 @@ const RULE_PATHS: Record<string, string | string[]> = {
   'use-lifecycle-interface': 'rules/quality/use-lifecycle-interface.grit',
   'use-pipe-transform-interface': 'rules/quality/use-pipe-transform-interface.grit',
   'contextual-lifecycle': 'rules/quality/contextual-lifecycle.grit',
+  'no-conflicting-lifecycle': 'rules/quality/no-conflicting-lifecycle.grit',
   'prefer-signal-inputs': 'rules/modern/prefer-signal-inputs.grit',
   'prefer-output-function': 'rules/modern/prefer-output-function.grit',
   'prefer-signal-queries': 'rules/modern/prefer-signal-queries.grit',

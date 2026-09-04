@@ -57,6 +57,7 @@ export const rules = {
     'use-pipe-transform-interface.grit',
   ),
   'contextual-lifecycle': join(__dirname, 'rules', 'quality', 'contextual-lifecycle.grit'),
+  'no-conflicting-lifecycle': join(__dirname, 'rules', 'quality', 'no-conflicting-lifecycle.grit'),
   // modern
   'prefer-signal-inputs': join(__dirname, 'rules', 'modern', 'prefer-signal-inputs.grit'),
   'prefer-output-function': join(__dirname, 'rules', 'modern', 'prefer-output-function.grit'),
