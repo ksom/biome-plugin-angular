@@ -1,33 +1,17 @@
+// Port of @angular-eslint/prefer-standalone, aligned with Angular 19+ where
+// standalone: true is the default and the v20 style guide recommends omitting
+// the property entirely. Only an explicit standalone: false is flagged.
+//
+// No auto-fix: removing the property makes the class standalone, which
+// breaks the NgModule that still declares it. Use the official migration
+// (`ng generate @angular/core:standalone`) which updates both sides.
 language js
 
 or {
-  `@Component({ $args })` where {
-    $args <: not contains `standalone: $_`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  },
-
-  `@Component({ $args })` where {
-    $args <: contains `standalone: false`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  },
-
-  `@Directive({ $args })` where {
-    $args <: not contains `standalone: $_`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  },
-
-  `@Directive({ $args })` where {
-    $args <: contains `standalone: false`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  },
-
-  `@Pipe({ $args })` where {
-    $args <: not contains `standalone: $_`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  },
-
-  `@Pipe({ $args })` where {
-    $args <: contains `standalone: false`,
-    register_diagnostic(span = $args, message = "Angular components, directives, and pipes should declare standalone: true (Angular 17+).")
-  }
+  `@Component({ $args })`,
+  `@Directive({ $args })`,
+  `@Pipe({ $args })`
+} where {
+  $args <: contains `standalone: false` as $standalone,
+  register_diagnostic(span = $standalone, message = "[prefer-standalone] Avoid standalone: false. Standalone is the default since Angular 19 — migrate this declarable off NgModules (`ng generate @angular/core:standalone`) and remove the property.")
 }

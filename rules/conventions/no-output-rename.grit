@@ -1,13 +1,25 @@
+// Port of @angular-eslint/no-output-rename.
+// Covers the @Output() decorator (string alias or `alias` option) and the
+// signal-based output() / outputFromObservable() functions, with or without
+// type arguments.
 language js
 
 or {
   `@Output($alias)` where {
     $alias <: r"^['\"].*['\"]$",
-    register_diagnostic(span = $alias, message = "Avoid renaming @Output() properties. Use the property name as the event name.")
+    register_diagnostic(span = $alias, message = "[no-output-rename] Avoid renaming @Output() properties. Use the property name as the event name.")
   },
-
   `@Output({ $opts })` where {
     $opts <: contains `alias: $_`,
-    register_diagnostic(span = $opts, message = "Avoid renaming @Output() properties. Use the property name as the event name.")
+    register_diagnostic(span = $opts, message = "[no-output-rename] Avoid renaming @Output() properties. Use the property name as the event name.")
+  },
+  or {
+    `output($opts)`,
+    `output<$type>($opts)`,
+    `outputFromObservable($source, $opts)`,
+    `outputFromObservable<$type>($source, $opts)`
+  } where {
+    $opts <: contains `alias: $_`,
+    register_diagnostic(span = $opts, message = "[no-output-rename] Avoid aliasing signal outputs. Use the property name as the event name.")
   }
 }

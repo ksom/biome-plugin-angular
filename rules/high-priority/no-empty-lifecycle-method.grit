@@ -1,28 +1,61 @@
+// Port of @angular-eslint/no-empty-lifecycle-method.
+// Matches lifecycle methods through Biome's native method node so that any
+// signature is covered (`: void`, parameters, `async`, `protected`,
+// `override`…). A method whose body has no statement is empty — a body that
+// only holds a comment counts as empty, like the upstream rule.
+//
+// The rule is split in two files with the SAME stem (Biome derives the plugin
+// name — used by `biome-ignore lint/plugin/<name>` — from the file stem):
+//   - rules/high-priority/no-empty-lifecycle-method.grit (this file): the class
+//     implements the hook's interface. Deleting the method alone breaks
+//     compilation (TS2420), so the diagnostic asks to remove both and ships
+//     no fix.
+//   - rules/high-priority/fixes/no-empty-lifecycle-method.grit: the interface
+//     is not implemented, the method is deleted with a safe fix.
+// They cannot live in one pattern: Biome pairs rewrites with diagnostics by
+// order of appearance in the file, so mixing fixable and non-fixable branches
+// attaches the fix to the wrong diagnostic.
 language js
 
 or {
-  `ngOnInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngOnChanges`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `OnChanges`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngOnChanges is empty: remove it together with OnChanges in the implements clause.", severity = "warn")
   },
-  `ngOnDestroy() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngOnInit`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `OnInit`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngOnInit is empty: remove it together with OnInit in the implements clause.", severity = "warn")
   },
-  `ngOnChanges() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngDoCheck`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `DoCheck`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngDoCheck is empty: remove it together with DoCheck in the implements clause.", severity = "warn")
   },
-  `ngDoCheck() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterContentInit`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `AfterContentInit`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngAfterContentInit is empty: remove it together with AfterContentInit in the implements clause.", severity = "warn")
   },
-  `ngAfterContentInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterContentChecked`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `AfterContentChecked`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngAfterContentChecked is empty: remove it together with AfterContentChecked in the implements clause.", severity = "warn")
   },
-  `ngAfterContentChecked() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterViewInit`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `AfterViewInit`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngAfterViewInit is empty: remove it together with AfterViewInit in the implements clause.", severity = "warn")
   },
-  `ngAfterViewInit() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngAfterViewChecked`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `AfterViewChecked`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngAfterViewChecked is empty: remove it together with AfterViewChecked in the implements clause.", severity = "warn")
   },
-  `ngAfterViewChecked() {}` where {
-    register_diagnostic(span = $match, message = "Angular lifecycle method is empty and can be removed.", severity = "warn")
+  JsMethodClassMember(name = `ngOnDestroy`, body = JsFunctionBody(statements = [])) as $method where {
+    $method <: within or { JsClassDeclaration(implements_clause = $impl), JsClassExportDefaultDeclaration(implements_clause = $impl) },
+    $impl <: contains `OnDestroy`,
+    register_diagnostic(span = $method, message = "[no-empty-lifecycle-method] Angular lifecycle method ngOnDestroy is empty: remove it together with OnDestroy in the implements clause.", severity = "warn")
   }
 }

@@ -2,72 +2,87 @@
 
 **Category:** quality
 **ESLint equivalent:** `@angular-eslint/contextual-lifecycle`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
 Angular lifecycle hooks are only invoked for the class types that support them. Using a hook in the wrong context is a silent bug — Angular won't call it, and no error will be thrown.
 
+`@Injectable` and `@Pipe` classes may only declare `ngOnDestroy` — Angular never calls any other lifecycle hook on them. `@Component` and `@Directive` classes support **all** hooks (directives do receive view and content hooks), so they are not checked by this rule.
+
 ### Context rules
 
 | Hook | `@Component` | `@Directive` | `@Injectable` | `@Pipe` |
 |------|:-----------:|:------------:|:-------------:|:-------:|
-| `ngOnInit` | ✅ | ✅ | ✅ | ✅ |
 | `ngOnDestroy` | ✅ | ✅ | ✅ | ✅ |
-| `ngOnChanges` | ✅ | ✅ | ✅ | ❌ |
-| `ngDoCheck` | ✅ | ✅ | ✅ | ❌ |
+| `ngOnInit` | ✅ | ✅ | ❌ | ❌ |
+| `ngOnChanges` | ✅ | ✅ | ❌ | ❌ |
+| `ngDoCheck` | ✅ | ✅ | ❌ | ❌ |
 | `ngAfterContentInit` | ✅ | ✅ | ❌ | ❌ |
 | `ngAfterContentChecked` | ✅ | ✅ | ❌ | ❌ |
-| `ngAfterViewInit` | ✅ | ❌ | ❌ | ❌ |
-| `ngAfterViewChecked` | ✅ | ❌ | ❌ | ❌ |
+| `ngAfterViewInit` | ✅ | ✅ | ❌ | ❌ |
+| `ngAfterViewChecked` | ✅ | ✅ | ❌ | ❌ |
 
 ## Examples
 
 ### Flagged
 
 ```typescript
-// ❌ view hooks in an Injectable
+// ❌ view hook in an @Injectable — will never be called
 @Injectable({ providedIn: 'root' })
 export class UserStore {
-  ngAfterViewInit() { ... }  // will never be called
+  ngAfterViewInit() { ... }
 }
 
-// ❌ view hook in a Directive
-@Directive({ selector: '[appFoo]', standalone: true })
-export class FooDirective {
-  ngAfterViewInit() { ... }  // only @Component has a view
+// ❌ ngOnInit in a @Pipe — only ngOnDestroy is supported
+@Pipe({ name: 'appTruncate' })
+export class TruncatePipe {
+  ngOnInit() { ... }
 }
 ```
 
 ### Preferred
 
 ```typescript
-// ✅ view hooks only in @Component
-@Component({ selector: 'app-foo', standalone: true, template: '' })
-export class FooComponent implements AfterViewInit {
-  ngAfterViewInit() { this.chart.render(); }
+// ✅ ngOnDestroy is the one hook Angular calls on @Injectable and @Pipe
+@Injectable({ providedIn: 'root' })
+export class UserStore {
+  ngOnDestroy() { this.cleanup(); }
 }
 
-// ✅ content hooks in @Directive are fine
-@Directive({ selector: '[appFoo]', standalone: true })
-export class FooDirective implements AfterContentInit {
-  ngAfterContentInit() { this.init(); }
+// ✅ all hooks are fine in @Component and @Directive
+@Directive({ selector: '[appFoo]' })
+export class FooDirective {
+  ngAfterViewInit() { this.init(); }
 }
 ```
+
+## Detection
+
+- Every class shape is matched (`export`, `export default`, `extends`, `implements`).
+- Hooks are located as method members, so any signature shape is caught (`: void`,
+  `async`, parameters, modifiers) and the diagnostic points at the offending method.
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/contextual-lifecycle": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

@@ -2,7 +2,7 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/no-output-rename`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
@@ -10,9 +10,11 @@ Disallows renaming `@Output()` properties via the decorator argument. Providing 
 for an output creates a mismatch between the EventEmitter property name and the event
 name used in parent template bindings, making event flows harder to trace.
 
-**Two alias forms are detected:**
+**Detected forms:**
 - `@Output('alias')` — string argument
 - `@Output({ alias: 'name' })` — alias key in options object
+- `output({ alias })`, `outputFromObservable(source, { alias })` — signal outputs, with or
+  without type arguments
 
 ## Examples
 
@@ -58,27 +60,34 @@ export class ButtonComponent {
 
 ## Signal-based outputs
 
-The rule applies to `@Output()` decorator only. Signal-based outputs using the
-`output()` function are not covered by this rule.
-
 ```typescript
-// Not covered by this rule
-clicked = output<void>({ alias: 'clickEvent' });
+saved = output<void>({ alias: 'onSaved' });                  // ❌ aliased signal output
+loaded = outputFromObservable(this.load$, { alias: 'ld' }); // ❌
+
+saved = output<void>();                                      // ✅
 ```
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-output-rename"` from your ESLint config and enable the
+plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-output-rename": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

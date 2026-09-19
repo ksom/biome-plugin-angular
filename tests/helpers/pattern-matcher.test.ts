@@ -15,7 +15,6 @@ describe('createPatternMatcher', () => {
     expect(typeof matcher.detectOutputRename).toBe('function');
     expect(typeof matcher.detectOutputOnPrefix).toBe('function');
     expect(typeof matcher.detectMissingPipePrefix).toBe('function');
-    expect(typeof matcher.detectUnsortedNgModuleArrays).toBe('function');
     expect(typeof matcher.detectMissingLifecycleInterface).toBe('function');
     expect(typeof matcher.detectMissingPipeTransform).toBe('function');
     expect(typeof matcher.detectContextualLifecycleViolations).toBe('function');
@@ -25,6 +24,13 @@ describe('createPatternMatcher', () => {
     expect(typeof matcher.detectTwoWayBindingPairs).toBe('function');
     expect(typeof matcher.detectHostDecorators).toBe('function');
     expect(typeof matcher.detectConstructorInjection).toBe('function');
+    expect(typeof matcher.detectInvalidDirectiveSelector).toBe('function');
+    expect(typeof matcher.detectNativeOutputNames).toBe('function');
+    expect(typeof matcher.detectConflictingLifecycle).toBe('function');
+    expect(typeof matcher.detectLifecycleCalls).toBe('function');
+    expect(typeof matcher.detectAsyncLifecycleMethods).toBe('function');
+    expect(typeof matcher.detectImpurePipes).toBe('function');
+    expect(typeof matcher.detectAttributeDecorators).toBe('function');
   });
 
   it('returned functions work correctly via the factory', () => {
@@ -32,7 +38,7 @@ describe('createPatternMatcher', () => {
 
     const violations = matcher.detectMissingStandalone(`
       import { Component } from '@angular/core';
-      @Component({ selector: 'app-root', template: '' })
+      @Component({ selector: 'app-root', standalone: false, template: '' })
       export class AppComponent {}
     `);
 

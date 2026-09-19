@@ -1,0 +1,16 @@
+// Port of @angular-eslint/no-async-lifecycle-method.
+// Angular does not await lifecycle hooks: an `async ngOnInit()` returns a
+// promise nobody observes, so errors are swallowed and the view may render
+// before the awaited work is done. Start the async work from the hook
+// instead, and keep the hook itself synchronous.
+//
+// The method is matched through Biome's native node (any signature), then
+// the `async` keyword is detected on the method text: Biome's regex operator
+// requires a full match, hence the (?s) flag and the trailing `.*`.
+language js
+
+JsMethodClassMember(name = $hook) as $method where {
+  $hook <: r"^ng(?:OnChanges|OnInit|DoCheck|AfterContentInit|AfterContentChecked|AfterViewInit|AfterViewChecked|OnDestroy)$",
+  $method <: r"(?s)^(?:(?:public|protected|private|override|static)\s+)*async\s.*$",
+  register_diagnostic(span = $hook, message = "[no-async-lifecycle-method] Lifecycle hooks must not be async: Angular never awaits them, so rejections are lost and the view can render before the awaited work completes.", severity = "warn")
+}

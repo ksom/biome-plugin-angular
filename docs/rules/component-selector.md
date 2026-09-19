@@ -2,7 +2,7 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/component-selector`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
@@ -10,10 +10,11 @@ Enforces that `@Component` selectors follow the Angular Style Guide conventions:
 
 - **Type:** element selector (not attribute `[...]` or class `.`)
 - **Style:** kebab-case
-- **Prefix:** must start with a configurable prefix (default: `app-`)
+- **Prefix:** must start with `app-` (hardcoded — see Configuration)
 
 These conventions ensure selectors are consistent, predictable, and avoid collisions
-with native HTML elements.
+with native HTML elements. Comma-separated selector lists (`'app-a, app-b'`) are accepted
+when every entry is valid.
 
 ## Examples
 
@@ -56,35 +57,33 @@ export class Step2FormComponent {}
 
 ## Configuration
 
-The default prefix is `app`. Configure a custom prefix via rule options (planned):
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
 
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/component-selector": ["warn", { "prefix": "acme", "style": "kebab-case", "type": "element" }]
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
 
-For library projects, use a shorter domain-specific prefix (e.g. `mat-` for Angular Material).
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no options, so the prefix is **not configurable**: it is hardcoded to
+`app`. If your project uses a different prefix (e.g. `acme-`, or `mat-` for a library),
+copy `rules/conventions/component-selector.grit` into your project, adjust the regex, and
+point your `plugins` array at the forked file.
+
+The severity is fixed to `warn` inside the rule itself.
 
 ## Migration from @angular-eslint
 
-```json
-{
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/component-selector": "warn"
-      }
-    }
-  }
-}
-```
+Remove `"@angular-eslint/component-selector"` from your ESLint config and enable the
+plugin as shown above.
 
 ## Further Reading
 

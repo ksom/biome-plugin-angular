@@ -2,64 +2,144 @@ import { describe, expect, it } from 'vitest';
 import { runBiomeCheck } from '../helpers/biome-runner.js';
 
 describe('angular/contextual-lifecycle [integration]', () => {
-  // Biome GritQL cannot match @Decorator\nclass patterns (decorator + class as one unit).
-  // This rule requires knowing the decorator type to determine context, which is not possible.
+  // Semantics follow @angular-eslint/contextual-lifecycle: @Injectable and @Pipe
+  // only support ngOnDestroy. @Component and @Directive support all hooks
+  // (directives DO receive view/content hooks), so they are never flagged.
   describe('violations', () => {
-    it.skip('flags ngAfterViewInit in @Injectable', async () => {
-      const { diagnostics, raw } = await runBiomeCheck('contextual-lifecycle', `
+    it('flags ngAfterViewInit in @Injectable', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
         import { Injectable } from '@angular/core';
         @Injectable({ providedIn: 'root' })
         export class UserStore {
           ngAfterViewInit() { console.log('view init'); }
         }
-      `);
+      `,
+      );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('wrong context');
     });
 
-    it.skip('flags ngAfterViewInit in @Directive', async () => {
-      const { diagnostics, raw } = await runBiomeCheck('contextual-lifecycle', `
-        import { Directive } from '@angular/core';
-        @Directive({ selector: '[appFoo]', standalone: true })
-        export class Foo {
-          ngAfterViewInit() { console.log('view init'); }
+    it('flags ngOnInit in @Injectable (services only support ngOnDestroy)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Injectable } from '@angular/core';
+        @Injectable({ providedIn: 'root' })
+        export class UserStore {
+          ngOnInit() { console.log('init'); }
         }
-      `);
+      `,
+      );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('wrong context');
     });
 
-    it.skip('flags ngAfterViewInit in @Pipe', async () => {
-      const { diagnostics, raw } = await runBiomeCheck('contextual-lifecycle', `
-        import { Pipe, PipeTransform } from '@angular/core';
+    it('flags ngAfterViewInit in @Pipe', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Pipe } from '@angular/core';
         @Pipe({ name: 'appFoo', standalone: true })
-        export class FooPipe implements PipeTransform {
+        export class FooPipe {
           transform(v: string) { return v; }
           ngAfterViewInit() { console.log('view init'); }
         }
-      `);
+      `,
+      );
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('wrong context');
+    });
+
+    it('flags hooks with return types and modifiers (ngOnChanges(changes): void)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Injectable } from '@angular/core';
+        @Injectable()
+        export class WatchService {
+          ngOnChanges(changes: SimpleChanges): void { this.react(changes); }
+          react(c: unknown) {}
+        }
+      `,
+      );
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
+    });
+
+    it('flags ngOnInit in @Injectable that has an implements clause', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Injectable, OnInit } from '@angular/core';
+        @Injectable({ providedIn: 'root' })
+        export class UserStore implements OnInit {
+          ngOnInit() { console.log('init'); }
+        }
+      `,
+      );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(1);
     });
   });
 
   describe('valid', () => {
     it('accepts ngAfterViewInit in @Component', async () => {
-      const { diagnostics, raw } = await runBiomeCheck('contextual-lifecycle', `
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
         import { Component, AfterViewInit } from '@angular/core';
         @Component({ selector: 'app-root', standalone: true, template: '' })
         export class App implements AfterViewInit {
           ngAfterViewInit() { console.log('view init'); }
         }
-      `);
+      `,
+      );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
     });
 
-    it('accepts ngOnInit in @Injectable', async () => {
-      const { diagnostics, raw } = await runBiomeCheck('contextual-lifecycle', `
-        import { Injectable, OnInit } from '@angular/core';
-        @Injectable({ providedIn: 'root' })
-        export class UserStore implements OnInit {
-          ngOnInit() { console.log('init'); }
+    it('accepts ngAfterViewInit in @Directive (directives receive view hooks)', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Directive } from '@angular/core';
+        @Directive({ selector: '[appFocus]' })
+        export class Focus {
+          ngAfterViewInit() { this.focus(); }
+          focus() {}
         }
-      `);
+      `,
+      );
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
+    });
+
+    it('accepts ngOnDestroy in @Injectable', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Injectable } from '@angular/core';
+        @Injectable({ providedIn: 'root' })
+        export class CleanupService {
+          ngOnDestroy() { this.teardown(); }
+          teardown() {}
+        }
+      `,
+      );
+      expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
+    });
+
+    it('accepts ngOnDestroy in @Pipe', async () => {
+      const { diagnostics, raw } = await runBiomeCheck(
+        'contextual-lifecycle',
+        `
+        import { Pipe } from '@angular/core';
+        @Pipe({ name: 'appAsyncish', standalone: true })
+        export class Asyncish {
+          transform(v: string) { return v; }
+          ngOnDestroy() { this.cleanup(); }
+          cleanup() {}
+        }
+      `,
+      );
       expect(diagnostics, `raw output: ${raw}`).toHaveLength(0);
     });
   });

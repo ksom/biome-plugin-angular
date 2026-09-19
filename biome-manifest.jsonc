@@ -1,11 +1,12 @@
 // Biome 2.x plugin manifest — required entry point when loading via
 // `"plugins": ["biome-plugin-angular"]` in biome.json.
-// Biome 2.4.8+ format: version (integer) + rules (array of .grit paths).
+// Biome 2.5+ format: version (integer) + rules (array of .grit paths).
 {
   "version": 1,
   "rules": [
     "./rules/high-priority/prefer-standalone.grit",
     "./rules/high-priority/no-empty-lifecycle-method.grit",
+    "./rules/high-priority/fixes/no-empty-lifecycle-method.grit",
     "./rules/conventions/no-service-suffix.grit",
     "./rules/conventions/no-directive-suffix.grit",
     "./rules/conventions/no-component-suffix.grit",
@@ -14,10 +15,16 @@
     "./rules/conventions/no-output-rename.grit",
     "./rules/conventions/no-output-on-prefix.grit",
     "./rules/conventions/pipe-prefix.grit",
-    "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
+    "./rules/conventions/directive-selector.grit",
+    "./rules/conventions/no-output-native.grit",
     "./rules/quality/use-lifecycle-interface.grit",
     "./rules/quality/use-pipe-transform-interface.grit",
     "./rules/quality/contextual-lifecycle.grit",
+    "./rules/quality/no-conflicting-lifecycle.grit",
+    "./rules/quality/no-lifecycle-call.grit",
+    "./rules/quality/no-async-lifecycle-method.grit",
+    "./rules/quality/no-pipe-impure.grit",
+    "./rules/quality/no-attribute-decorator.grit",
     "./rules/modern/prefer-signal-inputs.grit",
     "./rules/modern/prefer-output-function.grit",
     "./rules/modern/prefer-signal-queries.grit",

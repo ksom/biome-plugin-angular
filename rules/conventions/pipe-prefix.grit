@@ -1,7 +1,10 @@
+// Port of @angular-eslint/pipe-prefix with the Angular CLI default prefix
+// `app` (camelCase: `appTruncate`). Biome plugins take no options, so a
+// project using another prefix must copy this file and edit the regex.
 language js
 
 `@Pipe({ $args })` where {
   $args <: contains `name: $pipeName`,
   $pipeName <: not r"^['\"]app[A-Z].*",
-  register_diagnostic(span = $pipeName, message = "Pipe name must start with the configured prefix (default: 'app').", severity = "warn")
+  register_diagnostic(span = $pipeName, message = "[pipe-prefix] Pipe name must start with the 'app' prefix, e.g. 'appTruncate'.", severity = "warn")
 }

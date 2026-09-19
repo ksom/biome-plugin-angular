@@ -59,6 +59,23 @@ describe('angular/pipe-prefix', () => {
       expect(violations.map((v) => v.pipeName)).toEqual(['truncate', 'highlight']);
     });
 
+    it('flags pipe name that merely starts with the prefix letters ("apple")', () => {
+      // The prefix must be followed by an uppercase letter: "apple" starts
+      // with "app" but is not a prefixed name — it is a violation.
+      const code = `
+        import { Pipe, PipeTransform } from '@angular/core';
+
+        @Pipe({ name: 'apple', standalone: true })
+        export class ApplePipe implements PipeTransform {
+          transform(v: string): string { return v; }
+        }
+      `;
+
+      const violations = detectMissingPipePrefix(code);
+      expect(violations).toHaveLength(1);
+      expect(violations[0].pipeName).toBe('apple');
+    });
+
     it('flags pipe name starting with wrong prefix', () => {
       const code = `
         import { Pipe, PipeTransform } from '@angular/core';
@@ -98,6 +115,19 @@ describe('angular/pipe-prefix', () => {
   });
 
   describe('valid', () => {
+    it('accepts prefix followed by an uppercase letter ("appUpper")', () => {
+      const code = `
+        import { Pipe, PipeTransform } from '@angular/core';
+
+        @Pipe({ name: 'appUpper', standalone: true })
+        export class UpperPipe implements PipeTransform {
+          transform(v: string): string { return v.toUpperCase(); }
+        }
+      `;
+
+      expect(detectMissingPipePrefix(code)).toHaveLength(0);
+    });
+
     it('accepts pipe name starting with "app" prefix', () => {
       const code = `
         import { Pipe, PipeTransform } from '@angular/core';

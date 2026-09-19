@@ -2,12 +2,18 @@
 
 **Category:** conventions
 **ESLint equivalent:** _(new rule — aligns with Angular v20+ style guide)_
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Detects `@Injectable`-decorated classes whose name ends with `Service` and suggests
 using a descriptive name that expresses the class's responsibility instead.
+
+The check is decorator-gated: only classes decorated with `@Injectable` are flagged.
+Plain TypeScript or NestJS classes named `*Service` are **not** flagged.
+
+Every class shape is matched: `export`, `export default`, `extends`, generics and
+`implements` clauses.
 
 > "We're updating our style guide to no longer recommend adding suffixes like `Component`,
 > `Directive`, `Service`, or `Pipe` to class names."
@@ -77,20 +83,26 @@ export class SessionStore {}
 
 ## Severity rationale
 
-Ships as `warn` in `recommended` because renaming services is a significant migration
-effort in large codebases. Use `error` in `strict` or for new Angular v20+ projects.
+Ships with a fixed `warn` severity because renaming services is a significant migration
+effort in large codebases. Biome plugins take no options, so the severity cannot be
+changed in `biome.json`; to enforce it as an error, fork the `.grit` file and remove
+the `severity = "warn"` argument.
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-service-suffix": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
+}
+```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
 }
 ```
 

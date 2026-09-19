@@ -1,7 +1,12 @@
+// Port of @angular-eslint/component-selector with the Angular CLI defaults:
+// element selectors, kebab-case, `app` prefix. Comma-separated selector
+// lists are accepted when every entry is valid. Biome plugins take no
+// options, so a project using another prefix must copy this file and edit
+// the regex.
 language js
 
 `@Component({ $args })` where {
-  $args <: contains `selector: $sel`,
-  $sel <: not r"^['\"]app-[a-z][a-z0-9]*(?:-[a-z0-9]+)*['\"]$",
-  register_diagnostic(span = $sel, message = "Angular component selector must be kebab-case with the 'app-' prefix.", severity = "warn")
+  $args <: contains `selector: $selector`,
+  $selector <: not r"^['\"]app-[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\s*,\s*app-[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*['\"]$",
+  register_diagnostic(span = $selector, message = "[component-selector] Angular component selector must be kebab-case with the 'app-' prefix.", severity = "warn")
 }

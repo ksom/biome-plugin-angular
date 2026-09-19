@@ -1,9 +1,21 @@
-// Limitation: GritQL cannot match @Injectable/@Component\nclass as one unit,
-// so this matches ANY constructor with access-modifier params (heuristic).
-// In Angular projects this is accurate; may false-positive in non-Angular code.
+// Port of @angular-eslint/prefer-inject: prefer inject() over constructor
+// parameter injection (Angular 14+). Every constructor parameter of a
+// @Component/@Directive/@Injectable/@Pipe class is injected by Angular, with
+// or without an access modifier, so any non-empty constructor is flagged.
+// Plain TS or NestJS classes using parameter properties are not flagged.
+//
+// Classes are matched through Biome's native AST nodes so that every shape is
+// covered (`export`, `export default`, `extends`, `implements`).
 language js
 
-`constructor($params) { $_ }` where {
-  $params <: contains or { `private`, `protected`, `public`, `readonly` },
-  register_diagnostic(span = $params, message = "Prefer inject() over constructor-based dependency injection (Angular 14+).", severity = "warn")
+or {
+  JsClassDeclaration(decorators = $decorators, members = $members),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(members = $members)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(members = $members)))
+} where {
+  $decorators <: contains or { `@Component($args)`, `@Directive($args)`, `@Injectable($args)`, `@Pipe($args)` },
+  $members <: contains JsConstructorClassMember(parameters = $params) where {
+    $params <: contains or { TsPropertyParameter(), JsFormalParameter() }
+  },
+  register_diagnostic(span = $params, message = "[prefer-inject-function] Prefer inject() over constructor parameter injection (Angular 14+). Run `ng generate @angular/core:inject` to migrate.", severity = "warn")
 }

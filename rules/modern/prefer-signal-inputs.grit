@@ -1,10 +1,8 @@
+// Prefer the input() signal function (Angular 17.1+) over the @Input()
+// decorator. The official migration `ng generate @angular/core:signal-input-migration`
+// converts decorators and their template usages together.
 language js
 
-or {
-  `@Input()` where {
-    register_diagnostic(span = $match, message = "Prefer the input() signal function over @Input() decorator (Angular 17.1+).", severity = "warn")
-  },
-  `@Input($args)` where {
-    register_diagnostic(span = $match, message = "Prefer the input() signal function over @Input() decorator (Angular 17.1+).", severity = "warn")
-  }
+`@Input($args)` as $decorator where {
+  register_diagnostic(span = $decorator, message = "[prefer-signal-inputs] Prefer the input() signal function over the @Input() decorator (Angular 17.1+). Run `ng generate @angular/core:signal-input-migration` to migrate.", severity = "warn")
 }

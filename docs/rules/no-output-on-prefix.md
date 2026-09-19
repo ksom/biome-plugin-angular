@@ -2,11 +2,11 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/no-output-on-prefix`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
-Disallows naming `@Output()` properties with an `on` prefix followed by an uppercase
+Disallows naming outputs with an `on` prefix followed by an uppercase
 letter (e.g. `onSubmit`, `onChange`, `onClick`). In Angular templates, event bindings
 already use the `(event)="onHandler()"` convention — the `on` prefix belongs to the
 *handler method in the parent*, not to the output itself.
@@ -20,9 +20,12 @@ import { Component, Output, EventEmitter } from '@angular/core';
 
 @Component({ selector: 'app-form', standalone: true, template: '' })
 export class FormComponent {
-  @Output() onSubmit = new EventEmitter<void>();    // ❌
-  @Output() onChange = new EventEmitter<string>();  // ❌
-  @Output() onClick = new EventEmitter<void>();     // ❌
+  @Output() onSubmit = new EventEmitter<void>();    // ❌ initialized
+  @Output() onChange: EventEmitter<string>;         // ❌ typed only
+  @Output() onClick!: EventEmitter<void>;           // ❌ definite assignment
+  @Output('click') onPress = new EventEmitter<void>(); // ❌ decorator argument
+  readonly onSave = output<void>();                 // ❌ signal output
+  readonly onLoad = outputFromObservable(this.load$); // ❌ observable output
 }
 ```
 
@@ -51,21 +54,33 @@ export class FormComponent {
 
 - `onion` is **not** flagged — the `on` prefix rule only applies when followed by an uppercase letter.
 - `@Input()` properties named `onSomething` are not flagged — this rule targets `@Output()` only.
-- Signal-based outputs (`output()`) are not covered.
+- Signal-based outputs (`output()`, `outputFromObservable()`) are covered, with or
+  without type arguments.
+- Initialized (`= new EventEmitter()`), typed (`: EventEmitter<T>`), definite-assignment
+  (`!: EventEmitter<T>`) and `readonly` properties are all matched, with or without a
+  decorator argument.
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-output-on-prefix"` from your ESLint config and enable the
+plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-output-on-prefix": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

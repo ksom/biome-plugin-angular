@@ -1,5 +1,4 @@
 {
-  "$schema": "./rules-to-migrate.schema.json",
   "typescript": [
     {
       "name": "prefer-standalone",
@@ -30,6 +29,33 @@
       "skipReason": "Angular v20+ style guide no longer recommends class name suffixes. Replaced by angular/no-component-suffix. See https://github.com/angular/angular/discussions/59522"
     },
     {
+      "name": "no-component-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-component-suffix.grit",
+      "docs": "./docs/rules/no-component-suffix.md"
+    },
+    {
+      "name": "no-directive-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-directive-suffix.grit",
+      "docs": "./docs/rules/no-directive-suffix.md"
+    },
+    {
+      "name": "no-service-suffix",
+      "eslintRule": null,
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-service-suffix.grit",
+      "docs": "./docs/rules/no-service-suffix.md"
+    },
+    {
       "name": "directive-class-suffix",
       "eslintRule": "@angular-eslint/directive-class-suffix",
       "category": "conventions",
@@ -53,10 +79,9 @@
       "eslintRule": "@angular-eslint/directive-selector",
       "category": "conventions",
       "priority": 2,
-      "status": "todo",
-      "gritFile": null,
-      "docs": null,
-      "notes": "Enforces directive selector style: prefix, type (attribute), casing"
+      "status": "done",
+      "gritFile": "./rules/conventions/directive-selector.grit",
+      "docs": "./docs/rules/directive-selector.md"
     },
     {
       "name": "no-input-rename",
@@ -86,6 +111,15 @@
       "docs": "./docs/rules/no-output-on-prefix.md"
     },
     {
+      "name": "no-output-native",
+      "eslintRule": "@angular-eslint/no-output-native",
+      "category": "conventions",
+      "priority": 2,
+      "status": "done",
+      "gritFile": "./rules/conventions/no-output-native.grit",
+      "docs": "./docs/rules/no-output-native.md"
+    },
+    {
       "name": "pipe-prefix",
       "eslintRule": "@angular-eslint/pipe-prefix",
       "category": "conventions",
@@ -99,9 +133,8 @@
       "eslintRule": "@angular-eslint/sort-ngmodule-metadata-arrays",
       "category": "conventions",
       "priority": 2,
-      "status": "done",
-      "gritFile": "./rules/conventions/sort-ngmodule-metadata-arrays.grit",
-      "docs": "./docs/rules/sort-ngmodule-metadata-arrays.md"
+      "status": "skipped",
+      "skipReason": "GritQL cannot compare list order, so the rule could only detect the presence of metadata arrays — 100% false positives on sorted code. Removed until order comparison is expressible. The upstream rule was also deprecated and later removed from @angular-eslint."
     },
     {
       "name": "use-lifecycle-interface",
@@ -139,6 +172,51 @@
       "status": "done",
       "gritFile": "./rules/quality/contextual-lifecycle.grit",
       "docs": "./docs/rules/contextual-lifecycle.md"
+    },
+    {
+      "name": "no-conflicting-lifecycle",
+      "eslintRule": "@angular-eslint/no-conflicting-lifecycle",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-conflicting-lifecycle.grit",
+      "docs": "./docs/rules/no-conflicting-lifecycle.md"
+    },
+    {
+      "name": "no-lifecycle-call",
+      "eslintRule": "@angular-eslint/no-lifecycle-call",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-lifecycle-call.grit",
+      "docs": "./docs/rules/no-lifecycle-call.md"
+    },
+    {
+      "name": "no-async-lifecycle-method",
+      "eslintRule": "@angular-eslint/no-async-lifecycle-method",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-async-lifecycle-method.grit",
+      "docs": "./docs/rules/no-async-lifecycle-method.md"
+    },
+    {
+      "name": "no-pipe-impure",
+      "eslintRule": "@angular-eslint/no-pipe-impure",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-pipe-impure.grit",
+      "docs": "./docs/rules/no-pipe-impure.md"
+    },
+    {
+      "name": "no-attribute-decorator",
+      "eslintRule": "@angular-eslint/no-attribute-decorator",
+      "category": "quality",
+      "priority": 3,
+      "status": "done",
+      "gritFile": "./rules/quality/no-attribute-decorator.grit",
+      "docs": "./docs/rules/no-attribute-decorator.md"
     },
     {
       "name": "no-inputs-metadata-property",

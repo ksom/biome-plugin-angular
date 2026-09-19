@@ -1,6 +1,17 @@
+// Port of the Angular 17.2+ model() guidance: an @Output() named `xChange`
+// paired with an @Input() named `x` is the two-way binding pattern that
+// model() replaces. The pairing is checked per file via a regex capture on the
+// output name. Unpaired *Change outputs (e.g. Material-style selectionChange
+// events) are NOT flagged.
+// Properties are matched through Biome's native property node, so every
+// shape is covered (initialized, typed, definite-assignment, `readonly`).
 language js
 
-`@Output() $name = $init` where {
-  $name <: r".*Change$",
-  register_diagnostic(span = $name, message = "Prefer model() over the @Input() + @Output() xyzChange two-way binding pattern (Angular 17.2+).", severity = "warn")
+JsPropertyClassMember(modifiers = $modifiers, name = $name) where {
+  $modifiers <: contains `@Output($args)`,
+  $name <: r"(.*)Change$"($base),
+  $program <: contains JsPropertyClassMember(modifiers = $inputModifiers, name = $base) where {
+    $inputModifiers <: contains `@Input($inputArgs)`
+  },
+  register_diagnostic(span = $name, message = "[prefer-model-signal] Prefer model() over the @Input() + @Output() xyzChange two-way binding pattern (Angular 17.2+).", severity = "warn")
 }

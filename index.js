@@ -16,14 +16,27 @@ export const pluginManifest = join(__dirname, 'biome-manifest.jsonc');
 /** Preset config paths */
 export const presets = {
   recommended: join(__dirname, 'presets', 'recommended.json'),
-  strict: join(__dirname, 'presets', 'strict.json'),
 };
 
 /** GritQL rule file paths keyed by rule name */
 export const rules = {
   // high-priority
   'prefer-standalone': join(__dirname, 'rules', 'high-priority', 'prefer-standalone.grit'),
-  'no-empty-lifecycle-method': join(__dirname, 'rules', 'high-priority', 'no-empty-lifecycle-method.grit'),
+  'no-empty-lifecycle-method': join(
+    __dirname,
+    'rules',
+    'high-priority',
+    'no-empty-lifecycle-method.grit',
+  ),
+  // Second half of the same rule (same plugin name): the safe-fix cases.
+  // Load both files to get the complete rule.
+  'no-empty-lifecycle-method/fix': join(
+    __dirname,
+    'rules',
+    'high-priority',
+    'fixes',
+    'no-empty-lifecycle-method.grit',
+  ),
   // conventions
   'no-component-suffix': join(__dirname, 'rules', 'conventions', 'no-component-suffix.grit'),
   'no-directive-suffix': join(__dirname, 'rules', 'conventions', 'no-directive-suffix.grit'),
@@ -33,11 +46,27 @@ export const rules = {
   'no-output-rename': join(__dirname, 'rules', 'conventions', 'no-output-rename.grit'),
   'no-output-on-prefix': join(__dirname, 'rules', 'conventions', 'no-output-on-prefix.grit'),
   'pipe-prefix': join(__dirname, 'rules', 'conventions', 'pipe-prefix.grit'),
-  'sort-ngmodule-metadata-arrays': join(__dirname, 'rules', 'conventions', 'sort-ngmodule-metadata-arrays.grit'),
+  'directive-selector': join(__dirname, 'rules', 'conventions', 'directive-selector.grit'),
+  'no-output-native': join(__dirname, 'rules', 'conventions', 'no-output-native.grit'),
   // quality
   'use-lifecycle-interface': join(__dirname, 'rules', 'quality', 'use-lifecycle-interface.grit'),
-  'use-pipe-transform-interface': join(__dirname, 'rules', 'quality', 'use-pipe-transform-interface.grit'),
+  'use-pipe-transform-interface': join(
+    __dirname,
+    'rules',
+    'quality',
+    'use-pipe-transform-interface.grit',
+  ),
   'contextual-lifecycle': join(__dirname, 'rules', 'quality', 'contextual-lifecycle.grit'),
+  'no-conflicting-lifecycle': join(__dirname, 'rules', 'quality', 'no-conflicting-lifecycle.grit'),
+  'no-lifecycle-call': join(__dirname, 'rules', 'quality', 'no-lifecycle-call.grit'),
+  'no-async-lifecycle-method': join(
+    __dirname,
+    'rules',
+    'quality',
+    'no-async-lifecycle-method.grit',
+  ),
+  'no-pipe-impure': join(__dirname, 'rules', 'quality', 'no-pipe-impure.grit'),
+  'no-attribute-decorator': join(__dirname, 'rules', 'quality', 'no-attribute-decorator.grit'),
   // modern
   'prefer-signal-inputs': join(__dirname, 'rules', 'modern', 'prefer-signal-inputs.grit'),
   'prefer-output-function': join(__dirname, 'rules', 'modern', 'prefer-output-function.grit'),

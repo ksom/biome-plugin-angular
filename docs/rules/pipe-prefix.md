@@ -2,13 +2,14 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/pipe-prefix`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
-Enforces that the `name` field in `@Pipe` decorators starts with a configurable prefix
-(default: `app`). Namespacing pipe names prevents collisions with Angular's built-in
-pipes (`date`, `currency`, `async`, etc.) and with third-party library pipes.
+Enforces that the `name` field in `@Pipe` decorators starts with the `app` prefix
+(hardcoded — see Configuration). Namespacing pipe names prevents collisions with
+Angular's built-in pipes (`date`, `currency`, `async`, etc.) and with third-party
+library pipes.
 
 ## Examples
 
@@ -61,34 +62,33 @@ Usage in templates:
 
 ## Configuration
 
-The default prefix is `app`. For library or multi-team projects, configure a custom
-prefix via rule options (planned):
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
 
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/pipe-prefix": ["warn", { "prefix": "acme" }]
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no options, so the prefix is **not configurable**: it is hardcoded to
+`app` (pipe names must match `app` followed by an uppercase letter, e.g. `appTruncate`).
+For a different prefix, copy `rules/conventions/pipe-prefix.grit` into your project,
+adjust the regex, and point your `plugins` array at the forked file.
+
+The severity is fixed to `warn` inside the rule itself.
 
 ## Migration from @angular-eslint
 
-```json
-{
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/pipe-prefix": "warn"
-      }
-    }
-  }
-}
-```
+Remove `"@angular-eslint/pipe-prefix"` from your ESLint config and enable the plugin as
+shown above.
 
 ## Further Reading
 

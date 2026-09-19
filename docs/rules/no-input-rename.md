@@ -2,7 +2,7 @@
 
 **Category:** conventions
 **ESLint equivalent:** `@angular-eslint/no-input-rename`
-**Severity (recommended):** error
+**Severity:** error
 
 ## Overview
 
@@ -10,9 +10,11 @@ Disallows renaming `@Input()` properties via the decorator argument. Providing a
 creates a disconnect between the component's internal property name and its public API,
 making the component harder to use and the codebase harder to search.
 
-**Two alias forms are detected:**
+**Detected forms:**
 - `@Input('alias')` — string argument
 - `@Input({ alias: 'name' })` — alias key in options object
+- `input(default, { alias })`, `input.required({ alias })`, `model(default, { alias })`,
+  `model.required({ alias })` — signal inputs, with or without type arguments
 
 ## Examples
 
@@ -45,12 +47,13 @@ export class UserComponent {
 
 ## Signal-based inputs
 
-The rule applies to `@Input()` decorator only. Signal-based inputs using the `input()`
-function are not covered by this rule.
-
 ```typescript
-// Not covered by this rule
-value = input<string>('', { alias: 'externalValue' });
+value = input<string>('', { alias: 'externalValue' });   // ❌ aliased signal input
+count = input.required<number>({ alias: 'cnt' });        // ❌
+name = model('', { alias: 'nm' });                        // ❌
+
+value = input('');                                        // ✅
+count = input.required<number>();                         // ✅
 ```
 
 ## Why avoid renaming?
@@ -62,17 +65,25 @@ value = input<string>('', { alias: 'externalValue' });
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-input-rename"` from your ESLint config and enable the
+plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-input-rename": "error"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `error` inside
+the rule itself.
 
 ## Further Reading
 

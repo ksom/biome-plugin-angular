@@ -1,14 +1,20 @@
 # angular/prefer-inject-function
 
 **Category:** modern (signal-based APIs)
-**ESLint equivalent:** _(new rule — no direct ESLint equivalent)_
-**Severity (recommended):** warn
+**ESLint equivalent:** `@angular-eslint/prefer-inject`
+**Severity:** warn
 
 ## Overview
 
 Prefer the `inject()` function over constructor-based dependency injection. The `inject()` function (stable since Angular 14, recommended in Angular 16+) works in any injection context and avoids lengthy constructor parameter lists.
 
-**Detection:** flags constructors with access-modifier parameters (`private`, `protected`, `public`, `readonly`) — the classic Angular DI pattern.
+**Detection:** flags any constructor that takes at least one parameter inside a class decorated with `@Component`, `@Directive`, `@Injectable`, or `@Pipe` — Angular injects every constructor parameter of those classes, with or without an access modifier. Plain TypeScript or NestJS classes using parameter properties are **not** flagged. Every class shape is matched (`export`, `extends`, `implements`…).
+
+**Migration:** Angular ships a schematic that rewrites constructor injection to `inject()` calls, including `@Inject`, `@Optional`, `@Self` and `@Attribute` parameters:
+
+```bash
+ng generate @angular/core:inject
+```
 
 Benefits:
 - Works in functional injection contexts (guards, resolvers, interceptors)
@@ -61,17 +67,24 @@ export const authGuard = () => {
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/prefer-inject-function": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

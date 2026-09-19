@@ -2,11 +2,13 @@
 
 **Category:** quality
 **ESLint equivalent:** `@angular-eslint/use-lifecycle-interface`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Classes that implement Angular lifecycle methods should explicitly declare the corresponding interface. This makes intent clear and catches method signature mistakes at compile time.
+
+**How it works:** the check is per class. Each lifecycle method is matched (any signature: `: void`, `async`, parameters, modifiers) and the `implements` clause of its own class must name the matching interface. Importing the interface without implementing it is flagged.
 
 | Method | Required interface |
 |--------|-------------------|
@@ -53,17 +55,24 @@ export class AppComponent implements OnInit, OnDestroy {
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/use-lifecycle-interface": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

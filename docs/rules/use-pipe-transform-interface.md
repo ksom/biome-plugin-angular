@@ -2,11 +2,13 @@
 
 **Category:** quality
 **ESLint equivalent:** `@angular-eslint/use-pipe-transform-interface`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Classes decorated with `@Pipe` should implement the `PipeTransform` interface. This makes the `transform()` method type-safe and communicates intent clearly.
+
+**How it works:** the check is per class. The rule reads the `implements` clause of every `@Pipe`-decorated class and flags the class when `PipeTransform` is missing from it, whatever else the file imports or declares.
 
 ## Examples
 
@@ -38,17 +40,24 @@ export class TruncatePipe implements PipeTransform {
 
 ## Configuration
 
+Enable the plugin in `biome.json` (Biome plugins cannot be enabled per rule):
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/use-pipe-transform-interface": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

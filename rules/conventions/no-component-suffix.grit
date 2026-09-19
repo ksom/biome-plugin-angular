@@ -1,9 +1,18 @@
-// Limitation: GritQL cannot match @Component\nclass as one unit,
-// so this matches ANY class ending in "Component" (heuristic).
-// In Angular projects this is accurate; may false-positive in non-Angular code.
+// Port of the Angular v20+ style-guide guidance: drop the "Component" suffix.
+// Only classes decorated with @Component are flagged (plain TS classes are not).
+//
+// Classes are matched through Biome's native AST nodes instead of code
+// snippets so that every class shape is covered: `export`, `export default`,
+// `extends`, generics and `implements` clauses. Decorators written before
+// `export` are attached to the JsExport node, hence the three branches.
 language js
 
-`class $name { $_ }` where {
+or {
+  JsClassDeclaration(decorators = $decorators, id = $name),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(id = $name)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(id = $name)))
+} where {
+  $decorators <: contains `@Component($args)`,
   $name <: r".*Component$",
-  register_diagnostic(span = $name, message = "Angular v20+: remove the 'Component' suffix from class names. Name classes after what they represent.", severity = "warn")
+  register_diagnostic(span = $name, message = "[no-component-suffix] Angular v20+: remove the 'Component' suffix from class names. Name classes after what they represent.", severity = "warn")
 }

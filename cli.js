@@ -4,9 +4,15 @@
  *
  * Commands:
  *   init      — Scaffold a biome.json with biome-plugin-angular configured
- *   merge     — Merge plugin rules into an existing biome.json
+ *   merge     — Add the plugin to an existing biome.json
  *   remove    — Remove biome-plugin-angular from an existing biome.json
  *   rules     — List all available rules and their status
+ *
+ * The generated configuration extends the shipped preset
+ * (biome-plugin-angular/presets/recommended.json), which loads the plugin and
+ * applies the Angular-safe Biome settings (parameter decorators enabled,
+ * style/useImportType off). Per-rule severities are set inside each .grit
+ * rule (register_diagnostic) — there is no per-rule configuration for plugins.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -16,6 +22,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const PLUGIN_NAME = 'biome-plugin-angular';
+const PRESET = `${PLUGIN_NAME}/presets/recommended.json`;
+const BIOME_SCHEMA = 'https://biomejs.dev/schemas/2.5.12/schema.json';
+
+/** True when a plugins/extends entry points at this package (any form). */
+function referencesPlugin(entry) {
+  const value = typeof entry === 'string' ? entry : entry?.path;
+  return typeof value === 'string' && value.includes(PLUGIN_NAME);
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -51,7 +65,6 @@ function writeJson(filePath, data) {
 // ---------------------------------------------------------------------------
 
 function cmdInit(args) {
-  const preset = args.includes('--strict') ? 'strict' : 'recommended';
   const targetPath = resolve(process.cwd(), 'biome.json');
 
   if (existsSync(targetPath) && !args.includes('--force')) {
@@ -60,45 +73,40 @@ function cmdInit(args) {
     );
   }
 
-  const presetConfig = readJson(join(__dirname, 'presets', `${preset}.json`));
-  delete presetConfig.description;
-  presetConfig.$schema = 'https://biomejs.dev/schemas/2.0.0/schema.json';
-
-  writeJson(targetPath, presetConfig);
-  success(`Created biome.json with ${PLUGIN_NAME} (${preset} preset).`);
+  writeJson(targetPath, {
+    $schema: BIOME_SCHEMA,
+    extends: [PRESET],
+  });
+  success(`Created biome.json extending ${PRESET}.`);
   log('');
   log('Next steps:');
-  log(`  1. npx @biomejs/biome check .`);
-  log(`  2. Review docs: https://github.com/yourusername/${PLUGIN_NAME}#rules`);
+  log('  1. npx @biomejs/biome lint .');
+  log(`  2. Review docs: https://github.com/ksom/${PLUGIN_NAME}#rules`);
 }
 
-function cmdMerge(args) {
+function cmdMerge() {
   const targetPath = resolve(process.cwd(), 'biome.json');
 
   if (!existsSync(targetPath)) {
     error(`biome.json not found. Run 'biome-angular init' to create one.`);
   }
 
-  const preset = args.includes('--strict') ? 'strict' : 'recommended';
   const existing = readJson(targetPath);
-  const presetConfig = readJson(join(__dirname, 'presets', `${preset}.json`));
 
-  // Merge plugins array
-  if (!existing.plugins) existing.plugins = [];
-  if (!existing.plugins.includes(PLUGIN_NAME)) {
-    existing.plugins.push(PLUGIN_NAME);
+  const alreadyConfigured =
+    (Array.isArray(existing.plugins) && existing.plugins.some(referencesPlugin)) ||
+    (Array.isArray(existing.extends) && existing.extends.some(referencesPlugin));
+  if (!alreadyConfigured) {
+    if (!Array.isArray(existing.extends)) existing.extends = [];
+    existing.extends.push(PRESET);
   }
 
-  // Merge linter rules
-  existing.linter = existing.linter ?? {};
-  existing.linter.rules = existing.linter.rules ?? {};
-  existing.linter.rules.plugins = {
-    ...presetConfig.linter?.rules?.plugins,
-    ...(existing.linter.rules.plugins ?? {}),
-  };
-
   writeJson(targetPath, existing);
-  success(`Merged ${PLUGIN_NAME} (${preset} preset) into biome.json.`);
+  success(
+    alreadyConfigured
+      ? `${PLUGIN_NAME} is already configured in biome.json.`
+      : `Added ${PLUGIN_NAME} to biome.json.`,
+  );
 }
 
 function cmdRemove() {
@@ -110,13 +118,15 @@ function cmdRemove() {
 
   const config = readJson(targetPath);
 
-  // Remove from plugins
-  if (Array.isArray(config.plugins)) {
-    config.plugins = config.plugins.filter((p) => p !== PLUGIN_NAME);
-    if (config.plugins.length === 0) delete config.plugins;
+  for (const key of ['plugins', 'extends']) {
+    if (Array.isArray(config[key])) {
+      config[key] = config[key].filter((entry) => !referencesPlugin(entry));
+      if (config[key].length === 0) delete config[key];
+    }
   }
 
-  // Remove plugin rules
+  // Clean up the invalid linter.rules.plugins key written by pre-1.0 versions
+  // of this CLI (Biome rejects it as an unknown key).
   if (config.linter?.rules?.plugins) {
     for (const key of Object.keys(config.linter.rules.plugins)) {
       if (key.startsWith('angular/')) {
@@ -137,9 +147,9 @@ function cmdRules() {
   const { typescript: rules } = readJson(rulesPath);
 
   const statusIcon = { done: '✅', todo: '⬜', 'in-progress': '🔄', skipped: '⏭️ ' };
-  const categoryOrder = { 'high-priority': 0, conventions: 1, quality: 2 };
+  const categoryOrder = { 'high-priority': 0, conventions: 1, quality: 2, modern: 3 };
 
-  rules.sort((a, b) => categoryOrder[a.category] - categoryOrder[b.category]);
+  rules.sort((a, b) => (categoryOrder[a.category] ?? 99) - (categoryOrder[b.category] ?? 99));
 
   let currentCategory = null;
   for (const rule of rules) {
@@ -148,7 +158,8 @@ function cmdRules() {
       log(`\n  ${currentCategory.toUpperCase()}`);
     }
     const icon = statusIcon[rule.status] ?? '❓';
-    log(`    ${icon}  angular/${rule.name.padEnd(34)} (${rule.eslintRule})`);
+    const origin = rule.eslintRule ?? 'new signal-based rule';
+    log(`    ${icon}  angular/${rule.name.padEnd(34)} (${origin})`);
   }
 
   const done = rules.filter((r) => r.status === 'done').length;
@@ -166,7 +177,7 @@ switch (command) {
     cmdInit(rest);
     break;
   case 'merge':
-    cmdMerge(rest);
+    cmdMerge();
     break;
   case 'remove':
     cmdRemove();
@@ -179,8 +190,8 @@ switch (command) {
   biome-angular — Biome plugin for Angular
 
   Usage:
-    biome-angular init [--strict] [--force]
-    biome-angular merge [--strict]
+    biome-angular init [--force]
+    biome-angular merge
     biome-angular remove
     biome-angular rules
 

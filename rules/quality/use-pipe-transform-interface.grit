@@ -1,28 +1,15 @@
-// Limitation: Biome GritQL does not match @Decorator\nclass patterns at runtime.
-// This rule compiles but violations will NOT be detected.
-// Kept in manifest for forward-compatibility when Biome adds decorator+class support.
+// Port of @angular-eslint/use-pipe-transform-interface.
+// A @Pipe class must list PipeTransform in its implements clause. The check is
+// per class: the implements clause is read from Biome's native class node, so
+// a file that imports PipeTransform for another pipe does not exempt this one.
 language js
 
 or {
-  `@Pipe($args)
-class $name { $body }` where {
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name extends $ext { $body }` where {
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`,
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  },
-
-  `@Pipe($args)
-class $name extends $ext implements $ifaces { $body }` where {
-    $ifaces <: not contains `PipeTransform`,
-    register_diagnostic(span = $name, message = "@Pipe classes must implement the PipeTransform interface.", severity = "warn")
-  }
+  JsClassDeclaration(decorators = $decorators, id = $name, implements_clause = $implements),
+  JsExport(decorators = $decorators, export_clause = JsClassDeclaration(id = $name, implements_clause = $implements)),
+  JsExport(decorators = $decorators, export_clause = JsExportDefaultDeclarationClause(declaration = JsClassExportDefaultDeclaration(id = $name, implements_clause = $implements)))
+} where {
+  $decorators <: contains `@Pipe($args)`,
+  $implements <: not contains `PipeTransform`,
+  register_diagnostic(span = $name, message = "[use-pipe-transform-interface] @Pipe classes must implement the PipeTransform interface.", severity = "warn")
 }

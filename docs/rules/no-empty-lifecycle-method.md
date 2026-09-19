@@ -2,13 +2,38 @@
 
 **Category:** high-priority
 **ESLint equivalent:** `@angular-eslint/no-empty-lifecycle-method`
-**Severity (recommended):** warn
+**Severity:** warn
 
 ## Overview
 
 Disallows implementing Angular lifecycle interfaces with empty method bodies.
 Empty lifecycle methods add noise, mislead readers into expecting side effects,
 and should simply be omitted.
+
+The rule matches every empty hook regardless of signature shape: with or without a
+`: void` return type, and — for `ngOnChanges`, the only hook that takes an argument —
+with or without a parameter (`ngOnChanges(changes: SimpleChanges): void {}` is flagged).
+Modifier prefixes such as `async`, `protected`, or `override` are also matched.
+
+## Auto-fix
+
+When the class does **not** implement the hook's interface, the rule ships a **safe fix**
+that deletes the empty method:
+
+```bash
+npx biome lint --write
+```
+
+When the class does implement it (`class App implements OnInit`), deleting the method
+alone would fail compilation (TS2420: class incorrectly implements interface), so no fix
+is offered and the message asks to remove the method **and** the interface from the
+`implements` clause. Run the formatter after `--write` to tidy the blank line left
+behind.
+
+**Biome caveat (2.5.12):** plugin rewrites are applied per file. When one empty hook in a
+file is fixed, a `biome-ignore` comment on another empty hook in the same file does not
+protect it from `--write`. Use `biome-ignore-all` on that file, or give the hook a
+statement, until Biome resolves this.
 
 ## Covered lifecycle hooks
 
@@ -35,6 +60,15 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {}      // empty — remove it
 
   ngOnDestroy() {}   // empty — remove it
+}
+```
+
+```typescript
+import { Component, OnChanges, SimpleChanges } from '@angular/core';
+
+@Component({ selector: 'app-root', standalone: true, template: '' })
+export class AppComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {}   // empty — typed variants are matched too
 }
 ```
 
@@ -75,17 +109,25 @@ consistent with the original `@angular-eslint` behavior.
 
 ## Migration from @angular-eslint
 
+Remove `"@angular-eslint/no-empty-lifecycle-method"` from your ESLint config and enable
+the plugin in `biome.json`:
+
 ```json
 {
-  "linter": {
-    "rules": {
-      "plugins": {
-        "angular/no-empty-lifecycle-method": "warn"
-      }
-    }
-  }
+  "plugins": ["./node_modules/biome-plugin-angular"]
 }
 ```
+
+Or extend the recommended preset:
+
+```json
+{
+  "extends": ["biome-plugin-angular/presets/recommended.json"]
+}
+```
+
+Biome plugins take no per-rule options; this rule's severity is fixed to `warn` inside
+the rule itself.
 
 ## Further Reading
 

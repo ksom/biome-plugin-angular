@@ -1,0 +1,9 @@
+// Port of @angular-eslint/no-attribute-decorator.
+// @Attribute() only works on constructor parameters, which ties the class to
+// constructor injection. Angular 17.4+ exposes the same value through
+// inject(new HostAttributeToken('name')), which composes with inject().
+language js
+
+`@Attribute($args)` as $decorator where {
+  register_diagnostic(span = $decorator, message = "[no-attribute-decorator] Prefer inject(new HostAttributeToken('name')) over the @Attribute() decorator (Angular 17.4+).", severity = "warn")
+}
